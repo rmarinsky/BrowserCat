@@ -1,0 +1,262 @@
+import SwiftUI
+
+/// A picker grid item: a browser, browser+profile, or native app.
+struct PickerItem: Identifiable {
+    let id: String
+    let browser: InstalledBrowser?
+    let profile: BrowserProfile? // nil = plain browser entry
+    let app: InstalledApp?
+
+    var isBrowser: Bool { browser != nil }
+    var isApp: Bool { app != nil }
+
+    var displayName: String {
+        if let profile { return profile.displayName }
+        if let browser { return browser.displayName }
+        if let app { return app.displayName }
+        return ""
+    }
+
+    var icon: NSImage? {
+        browser?.icon ?? app?.icon
+    }
+
+    var hotkey: Character? {
+        profile?.hotkey ?? browser?.hotkey ?? app?.hotkey
+    }
+
+    init(browser: InstalledBrowser) {
+        self.id = browser.id
+        self.browser = browser
+        self.profile = nil
+        self.app = nil
+    }
+
+    init(browser: InstalledBrowser, profile: BrowserProfile) {
+        self.id = "\(browser.id):\(profile.directoryName)"
+        self.browser = browser
+        self.profile = profile
+        self.app = nil
+    }
+
+    init(app: InstalledApp) {
+        self.id = "app:\(app.id)"
+        self.browser = nil
+        self.profile = nil
+        self.app = app
+    }
+}
+
+struct PickerView: View {
+    @Environment(AppState.self) private var appState
+    var appDelegate: AppDelegate
+
+    @State private var hoveredIndex: Int?
+    @State private var profilePopoverBrowserID: String?
+
+    private var browsers: [InstalledBrowser] {
+        appState.visibleBrowsers
+    }
+
+    /// All visible apps, with host-matching ones first
+    private var sortedApps: [InstalledApp] {
+        let all = appState.visibleApps
+        guard let url = appState.pendingURL else { return all }
+        let matching = all.filter { $0.matchesHost(of: url) }
+        let rest = all.filter { !$0.matchesHost(of: url) }
+        return matching + rest
+    }
+
+    /// Items with hotkeys first, items without hotkeys at the end.
+    private var pickerItems: [PickerItem] {
+        var all: [PickerItem] = sortedApps.map { PickerItem(app: $0) }
+        all += browsers.map { PickerItem(browser: $0) }
+        for browser in browsers {
+            for profile in browser.profiles where profile.hotkey != nil {
+                all.append(PickerItem(browser: browser, profile: profile))
+            }
+        }
+
+        let withHotkey = all.filter { $0.hotkey != nil }
+        let withoutHotkey = all.filter { $0.hotkey == nil }
+        return withHotkey + withoutHotkey
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // URL bar
+            URLBar(url: appState.pendingURL, title: appState.pendingURLTitle)
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+
+            Divider()
+                .padding(.horizontal, 8)
+
+            // Browser grid
+            ScrollView {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 72, maximum: 80))],
+                    spacing: 8
+                ) {
+                    ForEach(Array(pickerItems.enumerated()), id: \.element.id) { index, item in
+                        PickerCell(item: item, isFocused: appState.focusedBrowserIndex == index || hoveredIndex == index)
+                            .onTapGesture {
+                                handleItemTap(item)
+                            }
+                            .popover(isPresented: Binding(
+                                get: { item.browser != nil && item.profile == nil && profilePopoverBrowserID == item.browser?.id },
+                                set: { if !$0 { profilePopoverBrowserID = nil } }
+                            )) {
+                                if let browser = item.browser {
+                                    ProfilePopover(browser: browser) { profile in
+                                        profilePopoverBrowserID = nil
+                                        appDelegate.openURL(with: browser, mode: .normal, profile: profile)
+                                    }
+                                }
+                            }
+                            .onHover { isHovered in
+                                hoveredIndex = isHovered ? index : nil
+                            }
+                            .contextMenu {
+                                if let app = item.app {
+                                    Button("Open in \(app.displayName)") {
+                                        appDelegate.openURL(with: app)
+                                    }
+                                } else if let browser = item.browser {
+                                    Button("Open") {
+                                        appDelegate.openURL(with: browser, mode: .normal, profile: item.profile)
+                                    }
+                                    if browser.supportsPrivateMode {
+                                        Button("Open Private") {
+                                            appDelegate.openURL(with: browser, mode: .privateMode, profile: item.profile)
+                                        }
+                                    }
+                                    if item.profile == nil && browser.hasProfiles {
+                                        Divider()
+                                        Menu("Open with Profile") {
+                                            ForEach(browser.profiles) { profile in
+                                                Button {
+                                                    appDelegate.openURL(with: browser, mode: .normal, profile: profile)
+                                                } label: {
+                                                    if let email = profile.email {
+                                                        Text("\(profile.displayName) (\(email))")
+                                                    } else {
+                                                        Text(profile.displayName)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                    }
+                }
+                .padding(12)
+            }
+
+            // Hint bar
+            Divider()
+                .padding(.horizontal, 8)
+
+            HStack(spacing: 4) {
+                Image(systemName: "option")
+                    .font(.system(size: 9, weight: .medium))
+                Text("/")
+                    .font(.system(size: 10))
+                Image(systemName: "shift")
+                    .font(.system(size: 9, weight: .medium))
+                Text("+ key for private mode")
+                    .font(.system(size: 10))
+            }
+            .foregroundStyle(.secondary)
+            .padding(.vertical, 6)
+        }
+        .frame(minWidth: 380, maxWidth: 380, minHeight: 120, idealHeight: 300, maxHeight: 400)
+        .onAppear {
+            appState.focusedBrowserIndex = 0
+        }
+    }
+
+    private func handleItemTap(_ item: PickerItem) {
+        if let app = item.app {
+            appDelegate.openURL(with: app)
+        } else if let profile = item.profile, let browser = item.browser {
+            appDelegate.openURL(with: browser, mode: .normal, profile: profile)
+        } else if let browser = item.browser, browser.hasProfiles {
+            profilePopoverBrowserID = browser.id
+        } else if let browser = item.browser {
+            appDelegate.openURL(with: browser, mode: .normal)
+        }
+    }
+}
+
+// MARK: - Picker Cell (supports both browsers and apps)
+
+struct PickerCell: View {
+    let item: PickerItem
+    let isFocused: Bool
+
+    var body: some View {
+        if let browser = item.browser {
+            BrowserCell(browser: browser, isFocused: isFocused, profile: item.profile)
+        } else if let app = item.app {
+            AppCell(app: app, isFocused: isFocused)
+        }
+    }
+}
+
+// MARK: - App Cell
+
+struct AppCell: View {
+    let app: InstalledApp
+    let isFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 4) {
+            ZStack(alignment: .topTrailing) {
+                if let icon = app.icon {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                } else {
+                    Image(systemName: "globe")
+                        .font(.system(size: 32))
+                        .frame(width: 40, height: 40)
+                }
+
+                // Hotkey badge
+                if let hotkey = app.hotkey {
+                    Text(String(hotkey).uppercased())
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(width: 18, height: 18)
+                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 4))
+                        .offset(x: 4, y: -4)
+                }
+            }
+
+            Text(app.displayName)
+                .font(.system(size: 10))
+                .lineLimit(1)
+                .truncationMode(.tail)
+
+            if let version = app.version {
+                Text(version)
+                    .font(.system(size: 8))
+                    .foregroundStyle(.secondary.opacity(0.6))
+                    .lineLimit(1)
+            }
+        }
+        .frame(width: 72, height: 78)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isFocused ? Color.accentColor.opacity(0.15) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(isFocused ? Color.accentColor : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+    }
+}

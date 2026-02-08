@@ -1,0 +1,178 @@
+import SwiftUI
+
+struct RulesSettingsView: View {
+    @Environment(AppState.self) private var appState
+    var appDelegate: AppDelegate
+
+    @State private var selectedRuleID: UUID?
+    @State private var editingRule: URLRule?
+    @State private var isAddingNew: Bool = false
+
+    var body: some View {
+        let start = CFAbsoluteTimeGetCurrent()
+        let _ = Log.settings.debug("⏱ RulesSettingsView: body evaluation started, \(appState.urlRules.count) rules")
+
+        VStack(spacing: 0) {
+            if appState.urlRules.isEmpty {
+                emptyState
+            } else {
+                rulesList
+            }
+
+            Divider()
+
+            bottomBar
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "arrow.triangle.branch")
+                .font(.system(size: 32))
+                .foregroundStyle(.secondary)
+            Text("No URL Rules")
+                .font(.headline)
+            Text("Add rules to automatically open URLs\nin a specific browser and profile.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var rulesList: some View {
+        @Bindable var state = appState
+
+        return List(selection: $selectedRuleID) {
+            ForEach(state.urlRules) { rule in
+                HStack(spacing: 12) {
+                    // Enabled indicator
+                    Circle()
+                        .fill(rule.isEnabled ? Color.green : Color.gray)
+                        .frame(width: 8, height: 8)
+
+                    // Pattern
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(rule.pattern.isEmpty ? "(empty)" : rule.pattern)
+                            .font(.system(size: 12, weight: .medium))
+                        Text(rule.matchType.displayName)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // Target (Browser/App + Profile)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        let targetName: String = {
+                            switch rule.targetType {
+                            case .browser:
+                                return appState.browsers.first(where: { $0.id == rule.browserID })?.displayName ?? "Unknown"
+                            case .app:
+                                return appState.apps.first(where: { $0.id == rule.browserID })?.displayName ?? "Unknown"
+                            }
+                        }()
+                        HStack(spacing: 4) {
+                            if rule.targetType == .app {
+                                Image(systemName: "arrow.up.forward.app.fill")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(.blue)
+                            }
+                            Text(targetName)
+                                .font(.system(size: 12))
+                        }
+
+                        if rule.targetType == .browser,
+                           let profileDir = rule.profileDirectoryName,
+                           let browser = appState.browsers.first(where: { $0.id == rule.browserID }),
+                           let profile = browser.profiles.first(where: { $0.directoryName == profileDir })
+                        {
+                            Text(profile.displayName)
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .tag(rule.id)
+                .padding(.vertical, 2)
+            }
+            .onMove { source, destination in
+                state.urlRules.move(fromOffsets: source, toOffset: destination)
+                for i in state.urlRules.indices {
+                    state.urlRules[i].sortOrder = i
+                }
+                appDelegate.saveURLRules()
+            }
+        }
+        .listStyle(.inset(alternatesRowBackgrounds: true))
+        .sheet(item: $editingRule) { rule in
+            RuleEditorSheet(
+                rule: rule,
+                browsers: appState.browsers,
+                apps: appState.visibleApps,
+                onSave: { updatedRule in
+                    if let idx = appState.urlRules.firstIndex(where: { $0.id == updatedRule.id }) {
+                        appState.urlRules[idx] = updatedRule
+                    }
+                    appDelegate.saveURLRules()
+                    editingRule = nil
+                },
+                onCancel: {
+                    editingRule = nil
+                }
+            )
+        }
+        .sheet(isPresented: $isAddingNew) {
+            RuleEditorSheet(
+                rule: URLRule(sortOrder: appState.urlRules.count),
+                browsers: appState.browsers,
+                apps: appState.visibleApps,
+                onSave: { newRule in
+                    appState.urlRules.append(newRule)
+                    appDelegate.saveURLRules()
+                    isAddingNew = false
+                },
+                onCancel: {
+                    isAddingNew = false
+                }
+            )
+        }
+    }
+
+    private var bottomBar: some View {
+        HStack {
+            Button {
+                isAddingNew = true
+            } label: {
+                Image(systemName: "plus")
+            }
+
+            Button {
+                if let id = selectedRuleID,
+                   let idx = appState.urlRules.firstIndex(where: { $0.id == id })
+                {
+                    appState.urlRules.remove(at: idx)
+                    for i in appState.urlRules.indices {
+                        appState.urlRules[i].sortOrder = i
+                    }
+                    appDelegate.saveURLRules()
+                    selectedRuleID = nil
+                }
+            } label: {
+                Image(systemName: "minus")
+            }
+            .disabled(selectedRuleID == nil)
+
+            Spacer()
+
+            Button("Edit") {
+                if let id = selectedRuleID,
+                   let rule = appState.urlRules.first(where: { $0.id == id })
+                {
+                    editingRule = rule
+                }
+            }
+            .disabled(selectedRuleID == nil)
+        }
+        .padding(8)
+    }
+}
