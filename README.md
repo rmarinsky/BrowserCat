@@ -1,71 +1,273 @@
-# BrowserCat
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-direct-single.svg)](https://stand-with-ukraine.pp.ua)
 
-A macOS menu bar app that lets you choose which browser (or app) opens every link. Set BrowserCat as your default browser and a sleek picker appears near your cursor whenever you click a URL anywhere on the system.
+# 🐈 BrowserCat
 
-## Features
+**macOS menu bar browser picker** — choose which browser, profile, or app opens every link with one click or hotkey.
 
-- **Browser picker** - floating panel appears near the cursor with all installed browsers
-- **Native app routing** - open links directly in Slack, Teams, Discord, Figma, Zoom, Telegram, and more
-- **URL rules** - auto-route links by host, substring, or regex to a specific browser or app
-- **Browser profiles** - pick a Chrome/Edge/Brave/Firefox profile before opening
-- **Private mode** - hold Option or Shift + hotkey to open in incognito/private
-- **Keyboard hotkeys** - assign a single key to each browser, profile, or app for instant opening
-- **Launch at login** - optional, via the Settings window
-- **Lightweight** - lives in the menu bar, no dock icon
+Stop copy-pasting URLs between browsers. Stop launching the wrong profile. BrowserCat gives you instant control over where every link opens.
 
-## Supported Browsers
+![macOS](https://img.shields.io/badge/macOS-14.0+-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Swift](https://img.shields.io/badge/Swift-5.9+-orange)
+[![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua)
 
-Safari, Chrome, Firefox, Arc, Edge, Brave, Opera, Vivaldi, Chromium, Orion (Kagi), Zen, Waterfox, SigmaOS, Tor Browser, Whale, Yandex, and more. Any browser installed on your Mac is auto-detected.
+---
 
-## Supported Apps
+## 🎯 Use Cases
 
-Teams, Slack, Discord, Figma, Notion, Spotify, Zoom, Linear, Telegram, WhatsApp, 1Password, VS Code, Obsidian, Jira, Miro, Loom. Apps that match the link's host are promoted to the top of the picker.
+### 1️⃣ Multiple Browser Profiles
+**Problem:** You have Chrome Personal, Chrome Work, and constantly open links in the wrong profile.
+**Solution:** BrowserCat shows all profiles in the picker. One click → right profile, every time.
 
-## Installation
+```
+Click a link → Picker appears → Choose "Chrome (Work)" → Done
+```
 
-### Homebrew (recommended)
+### 2️⃣ Privacy-First Browsing
+**Problem:** Opening banking links, medical results, or private searches requires manually launching incognito mode.
+**Solution:** Hold `Option/Shift` or set a URL rule to auto-open in private mode.
 
+```
+Click banking URL → Auto-opens in Safari Private
+Or: Option + Hotkey → Any browser in incognito
+```
+
+### 3️⃣ Native App Routing
+**Problem:** Slack/Figma/Zoom links open in browser instead of the native app.
+**Solution:** BrowserCat detects matching apps and prioritizes them in the picker.
+
+```
+slack.com/archives/... → Opens in Slack.app (not browser)
+figma.com/file/... → Opens in Figma.app
+zoom.us/j/... → Opens in Zoom.app
+```
+
+### 4️⃣ URL-Based Automation
+**Problem:** GitHub links should always open in Arc, Jira in Chrome Work, YouTube in Safari.
+**Solution:** Set URL rules by host, substring, or regex.
+
+```
+github.com/* → Arc Browser
+*.atlassian.net/* → Chrome (Work Profile)
+youtube.com/* → Safari
+```
+
+### 5️⃣ Testing Across Browsers
+**Problem:** QA/Dev workflow requires checking the same URL in 5+ browsers.
+**Solution:** Keyboard hotkeys let you open the same link instantly in any browser.
+
+```
+1. Copy URL
+2. Press ⌘+1 → Opens in Chrome
+3. Press ⌘+2 → Opens in Firefox
+4. Press ⌘+3 → Opens in Safari
+(All from the same clipboard URL)
+```
+
+### 6️⃣ Context-Aware Link Opening
+**Problem:** Personal emails → Personal browser. Work docs → Work browser. Manual switching is tedious.
+**Solution:** Set domain-based rules and profiles to auto-route.
+
+```
+mail.google.com → Chrome Personal
+docs.google.com/a/company.com → Chrome Work
+```
+
+---
+
+## ⚡ Quick Start
+
+### Install via Homebrew (Recommended)
 ```bash
 brew install --cask rmarinsky/tap/browsercat
 ```
 
-### Manual
+### Manual Installation
+1. Download the latest `.dmg` from [Releases](https://github.com/rmarinsky/BrowserCat/releases/latest)
+2. Drag **BrowserCat** to Applications
+3. Launch and set as default browser in Settings
 
-1. Download the latest `.dmg` from [GitHub Releases](https://github.com/rmarinsky/BrowserCat/releases/latest)
-2. Open the `.dmg` and drag **BrowserCat** to Applications
-3. Launch BrowserCat and set it as the default browser in Settings
+### First-Time Setup
+1. **Set BrowserCat as default browser:**
+   Settings → General → Default Browser → BrowserCat
 
-## Keyboard Shortcuts
+2. **Configure hotkeys (optional):**
+   BrowserCat → Settings → Apps → Assign keyboard shortcuts
 
-| Key | Action |
-|-----|--------|
-| Assigned hotkey | Open link in that browser/app |
-| Option/Shift + hotkey | Open in private/incognito mode |
-| Arrow keys | Navigate the picker grid |
-| Return | Open in the focused browser |
-| Escape | Dismiss the picker |
+3. **Add URL rules (optional):**
+   Settings → Rules → Add rule for auto-routing specific domains
 
-Hotkeys are configured per-browser and per-profile in **Settings > Apps**.
+---
 
-## Build from Source
+## 🚀 Features
 
-Requires Xcode 15+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+### Browser Picker
+- **Floating panel** near cursor with all installed browsers
+- **Grid layout** with icons and names
+- **Keyboard navigation** (arrow keys + Return)
+- **Instant dismiss** (Escape or click outside)
 
+### Browser Detection
+Auto-detects all installed browsers:
+- **Chromium-based:** Chrome, Edge, Brave, Arc, Vivaldi, Opera, Zen, Chromium
+- **WebKit-based:** Safari, Orion (Kagi)
+- **Gecko-based:** Firefox, Waterfox, Tor Browser
+- **Others:** SigmaOS, Whale, Yandex
+
+### Profile Support
+Pick specific browser profiles before opening:
+- Chrome/Edge/Brave profiles
+- Firefox profiles
+- Arc spaces (if supported)
+
+### Native App Routing
+Links auto-open in matching native apps:
+- **Communication:** Slack, Teams, Discord, Telegram, WhatsApp, Zoom
+- **Productivity:** Figma, Notion, Miro, Linear, Jira, Obsidian
+- **Dev Tools:** VS Code, GitHub Desktop
+- **Media:** Spotify, YouTube Music
+- **Security:** 1Password
+
+### URL Rules
+Auto-route links by pattern:
+- **Host match:** `github.com` → Arc
+- **Substring match:** `*atlassian.net*` → Chrome Work
+- **Regex match:** `^https://meet\.google\.com/.*` → Chrome Personal
+
+### Keyboard Shortcuts
+| Action | Shortcut |
+|--------|----------|
+| Open with hotkey | Assign per-browser (e.g., `⌘+1` for Chrome) |
+| Private mode | `Option/Shift + Hotkey` |
+| Navigate picker | `Arrow Keys` |
+| Confirm | `Return` |
+| Cancel | `Escape` |
+
+### Privacy & Performance
+- **No tracking** — zero analytics, zero telemetry
+- **No network calls** — fully offline
+- **Lightweight** — lives in menu bar, no dock icon
+- **Launch at login** — optional
+
+---
+
+## 🛠️ Configuration
+
+### Settings Window
+Access via menu bar icon → Settings:
+- **General:** Default browser, launch at login
+- **Apps:** Hotkey assignments, browser/app order
+- **Rules:** URL routing patterns
+- **Advanced:** Private mode defaults, picker position
+
+### Example URL Rules
+```
+# Work-related domains → Chrome Work Profile
+*.atlassian.net/* → Chrome (Work)
+*.slack.com/client/* → Chrome (Work)
+
+# Personal browsing → Safari Private
+*banking.example.com* → Safari (Private)
+
+# Development → Arc
+github.com/* → Arc Browser
+localhost:* → Arc Browser
+```
+
+---
+
+## 📦 Build from Source
+
+### Requirements
+- macOS 14.0+ (Sonoma)
+- Xcode 15+
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
+### Build Steps
 ```bash
+# Install dependencies
 brew install xcodegen
+
+# Clone repository
 git clone https://github.com/rmarinsky/BrowserCat.git
 cd BrowserCat
+
+# Generate Xcode project
 xcodegen generate
+
+# Open and build
 open BrowserCat.xcodeproj
 ```
 
-Build and run the **BrowserCat** scheme (Release) or **BrowserCat DEV** scheme (Debug).
+Build schemes:
+- **BrowserCat** → Release build
+- **BrowserCat DEV** → Debug build with logging
 
-## Requirements
+---
 
-- macOS 14.0 (Sonoma) or later
-- Apple Silicon or Intel
+## ❓ FAQ
 
-## License
+**Q: Does BrowserCat collect any data?**
+A: No. Zero analytics, zero telemetry, zero network calls. Fully offline.
 
-[MIT](LICENSE)
+**Q: Why does the picker appear in the wrong position?**
+A: The picker tries to center near the cursor. If it's off-screen, it auto-adjusts. Check Settings → Advanced to tweak behavior.
+
+**Q: Can I disable the picker and use only hotkeys?**
+A: Not yet, but this is planned. For now, set hotkeys and press them immediately.
+
+**Q: Does this work with Raycast/Alfred URL handlers?**
+A: Yes, if they trigger the system default browser, BrowserCat will intercept.
+
+**Q: How do I uninstall?**
+A: Drag BrowserCat from Applications to Trash, then reset your default browser in System Settings.
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] **Hotkey-only mode** (skip picker UI)
+- [ ] **Link history** (recent URLs with search)
+- [ ] **Per-domain browser profiles** (auto-select profile based on URL)
+- [ ] **iCloud sync** (rules & settings across Macs)
+- [ ] **Browser tab detection** (open in existing tab if possible)
+- [ ] **Custom app support** (add unlisted apps manually)
+
+---
+
+## 🐛 Known Issues
+
+- Picker animation could be smoother (refactoring in progress)
+- Some Electron apps don't pass URLs correctly (investigating)
+- Browser profile detection may miss custom Firefox profiles
+
+Report bugs via [GitHub Issues](https://github.com/rmarinsky/BrowserCat/issues).
+
+---
+
+## 📄 License
+
+[MIT License](LICENSE) — use it, fork it, sell it, whatever.
+
+---
+
+## 🙏 Acknowledgments
+
+Built by [@rmarinsky](https://github.com/rmarinsky) because copy-pasting URLs between browsers is annoying.
+
+Inspired by tools like Choosy, Browserosaurus, and Velja — but free, open-source, and actually maintained.
+
+---
+
+## 💬 Feedback
+
+If BrowserCat saves you 30+ context switches per day, consider:
+- ⭐ Starring this repo
+- 🐛 Reporting bugs
+- 💡 Suggesting features
+- 📢 Sharing with other multi-browser users
+
+**Links:**
+- [GitHub Issues](https://github.com/rmarinsky/BrowserCat/issues)
+- [Releases](https://github.com/rmarinsky/BrowserCat/releases)
+- [Homebrew Tap](https://github.com/rmarinsky/homebrew-tap)
