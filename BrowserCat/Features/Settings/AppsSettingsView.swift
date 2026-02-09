@@ -411,13 +411,7 @@ struct AppsSettingsView: View {
             .font(.system(size: 9, weight: .semibold))
             .foregroundStyle(.white)
             .frame(width: 22, height: 22)
-            .background(avatarColor(for: profile.displayName), in: Circle())
+            .background(Color.profileAvatar(for: profile.displayName), in: Circle())
             .overlay(Circle().strokeBorder(.white.opacity(0.8), lineWidth: 1.5))
-    }
-
-    private func avatarColor(for name: String) -> Color {
-        let colors: [Color] = [.blue, .purple, .orange, .green, .pink, .teal, .indigo]
-        let hash = abs(name.hashValue)
-        return colors[hash % colors.count]
     }
 }

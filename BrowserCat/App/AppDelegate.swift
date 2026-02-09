@@ -95,21 +95,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func openURL(with browser: InstalledBrowser, mode: BrowserLauncher.OpenMode = .normal, profile: BrowserProfile? = nil) {
         guard let url = appState.pendingURL else { return }
-
         browserLauncher.open(url: url, with: browser, mode: mode, profile: profile)
-
-        appState.lastOpenedURL = url.absoluteString
-        SettingsStorage.shared.lastURL = url.absoluteString
-        appState.pendingURL = nil
-        appState.pendingURLTitle = nil
-        dismissPicker()
+        completeURLOpen(url)
     }
 
     func openURL(with app: InstalledApp) {
         guard let url = appState.pendingURL else { return }
-
         browserLauncher.open(url: url, with: app)
+        completeURLOpen(url)
+    }
 
+    private func completeURLOpen(_ url: URL) {
         appState.lastOpenedURL = url.absoluteString
         SettingsStorage.shared.lastURL = url.absoluteString
         appState.pendingURL = nil
@@ -174,7 +170,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if let savedConfigs {
             mark = CFAbsoluteTimeGetCurrent()
-            appState.browsers = mergeBrowsers(detected: detected, saved: savedConfigs)
+            appState.browsers = mergeDetectedWithSaved(
+                detected: detected,
+                saved: savedConfigs,
+                configID: \.id,
+                sortOrder: \.sortOrder
+            ) { browser, config in
+                browser.isVisible = config.isVisible
+                browser.isIgnored = config.isIgnored
+                browser.hotkey = config.hotkey?.first
+                browser.sortOrder = config.sortOrder
+                browser.displayName = config.displayName
+            }
             Log.app.debug("⏱ refreshBrowsers: mergeBrowsers took \((CFAbsoluteTimeGetCurrent() - mark) * 1000, format: .fixed(precision: 1))ms")
         } else {
             appState.browsers = detected
@@ -214,38 +221,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.debug("⏱ refreshBrowsers: TOTAL \((CFAbsoluteTimeGetCurrent() - totalStart) * 1000, format: .fixed(precision: 1))ms")
     }
 
-    private func mergeBrowsers(detected: [InstalledBrowser], saved: [BrowserConfig]) -> [InstalledBrowser] {
-        let savedMap = Dictionary(saved.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    private func mergeDetectedWithSaved<Item: Identifiable, Config>(
+        detected: [Item],
+        saved: [Config],
+        configID: (Config) -> String,
+        sortOrder: WritableKeyPath<Item, Int>,
+        apply: (inout Item, Config) -> Void
+    ) -> [Item] where Item.ID == String {
+        let savedMap = Dictionary(saved.map { (configID($0), $0) }, uniquingKeysWith: { first, _ in first })
         let detectedMap = Dictionary(detected.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
-        var result: [InstalledBrowser] = []
+        var result: [Item] = []
         var seenIDs: Set<String> = []
 
-        // First: add browsers in saved order (if still installed)
+        // First: add items in saved order (if still installed)
         for config in saved {
-            guard seenIDs.insert(config.id).inserted else { continue }
-            if var browser = detectedMap[config.id] {
-                browser.isVisible = config.isVisible
-                browser.isIgnored = config.isIgnored
-                browser.hotkey = config.hotkey?.first
-                browser.sortOrder = config.sortOrder
-                browser.displayName = config.displayName
-                result.append(browser)
+            let id = configID(config)
+            guard seenIDs.insert(id).inserted else { continue }
+            if var item = detectedMap[id] {
+                apply(&item, config)
+                result.append(item)
             }
-            // Skip uninstalled browsers
         }
 
-        // Second: add newly detected browsers not in saved config
-        let maxOrder = result.map(\.sortOrder).max() ?? -1
+        // Second: add newly detected items not in saved config
+        let maxOrder = result.map { $0[keyPath: sortOrder] }.max() ?? -1
         var nextOrder = maxOrder + 1
-        for browser in detected where !savedMap.keys.contains(browser.id) {
-            var newBrowser = browser
-            newBrowser.sortOrder = nextOrder
-            result.append(newBrowser)
+        for item in detected where !savedMap.keys.contains(item.id) {
+            var newItem = item
+            newItem[keyPath: sortOrder] = nextOrder
+            result.append(newItem)
             nextOrder += 1
         }
 
-        return result.sorted { $0.sortOrder < $1.sortOrder }
+        return result.sorted { $0[keyPath: sortOrder] < $1[keyPath: sortOrder] }
     }
 
     func saveBrowserConfig() {
@@ -267,7 +276,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if let savedConfigs {
             mark = CFAbsoluteTimeGetCurrent()
-            appState.apps = mergeApps(detected: detected, saved: savedConfigs)
+            appState.apps = mergeDetectedWithSaved(
+                detected: detected,
+                saved: savedConfigs,
+                configID: \.id,
+                sortOrder: \.sortOrder
+            ) { app, config in
+                app.isVisible = config.isVisible
+                app.hotkey = config.hotkey?.first
+                app.sortOrder = config.sortOrder
+                app.displayName = config.displayName
+            }
             Log.apps.debug("⏱ refreshApps: mergeApps took \((CFAbsoluteTimeGetCurrent() - mark) * 1000, format: .fixed(precision: 1))ms")
         } else {
             appState.apps = detected
@@ -278,38 +297,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.apps.debug("⏱ refreshApps: saveAppConfig took \((CFAbsoluteTimeGetCurrent() - mark) * 1000, format: .fixed(precision: 1))ms")
 
         Log.apps.debug("⏱ refreshApps: TOTAL \((CFAbsoluteTimeGetCurrent() - totalStart) * 1000, format: .fixed(precision: 1))ms")
-    }
-
-    private func mergeApps(detected: [InstalledApp], saved: [AppConfig]) -> [InstalledApp] {
-        let savedMap = Dictionary(saved.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let detectedMap = Dictionary(detected.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-
-        var result: [InstalledApp] = []
-        var seenIDs: Set<String> = []
-
-        // First: add apps in saved order (if still installed)
-        for config in saved {
-            guard seenIDs.insert(config.id).inserted else { continue }
-            if var app = detectedMap[config.id] {
-                app.isVisible = config.isVisible
-                app.hotkey = config.hotkey?.first
-                app.sortOrder = config.sortOrder
-                app.displayName = config.displayName
-                result.append(app)
-            }
-        }
-
-        // Second: add newly detected apps not in saved config
-        let maxOrder = result.map(\.sortOrder).max() ?? -1
-        var nextOrder = maxOrder + 1
-        for app in detected where !savedMap.keys.contains(app.id) {
-            var newApp = app
-            newApp.sortOrder = nextOrder
-            result.append(newApp)
-            nextOrder += 1
-        }
-
-        return result.sorted { $0.sortOrder < $1.sortOrder }
     }
 
     func saveAppConfig() {

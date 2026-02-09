@@ -90,6 +90,14 @@ struct BrowserCell: View {
     }
 
     private func avatarColor(for name: String) -> Color {
+        .profileAvatar(for: name)
+    }
+}
+
+// MARK: - Shared profile avatar color
+
+extension Color {
+    static func profileAvatar(for name: String) -> Color {
         let colors: [Color] = [.blue, .purple, .orange, .green, .pink, .teal, .indigo]
         let hash = abs(name.hashValue)
         return colors[hash % colors.count]

@@ -79,27 +79,12 @@ final class PickerWindowController: NSObject {
 
     // MARK: - Key Handling
 
-    /// Builds the same item list as PickerView so focus indices match.
-    private func pickerItems(from browsers: [InstalledBrowser], apps: [InstalledApp]) -> [PickerItem] {
-        var all: [PickerItem] = apps.map { PickerItem(app: $0) }
-        all += browsers.map { PickerItem(browser: $0) }
-        for browser in browsers {
-            for profile in browser.profiles where profile.hotkey != nil {
-                all.append(PickerItem(browser: browser, profile: profile))
-            }
-        }
-
-        let withHotkey = all.filter { $0.hotkey != nil }
-        let withoutHotkey = all.filter { $0.hotkey == nil }
-        return withHotkey + withoutHotkey
-    }
-
     private func handleKeyEvent(_ event: NSEvent) -> Bool {
         guard let appState, let delegate else { return false }
 
         let browsers = appState.visibleBrowsers
         let allApps = appState.visibleApps
-        let items = pickerItems(from: browsers, apps: allApps)
+        let items = PickerItem.buildItems(browsers: browsers, apps: allApps)
 
         switch Int(event.keyCode) {
         case 53: // Escape

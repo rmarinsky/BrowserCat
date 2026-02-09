@@ -45,6 +45,22 @@ struct PickerItem: Identifiable {
         self.profile = nil
         self.app = app
     }
+
+    /// Build the ordered picker item list: apps first, then browsers,
+    /// then profile-with-hotkey entries. Items with hotkeys sort before those without.
+    static func buildItems(browsers: [InstalledBrowser], apps: [InstalledApp]) -> [PickerItem] {
+        var all: [PickerItem] = apps.map { PickerItem(app: $0) }
+        all += browsers.map { PickerItem(browser: $0) }
+        for browser in browsers {
+            for profile in browser.profiles where profile.hotkey != nil {
+                all.append(PickerItem(browser: browser, profile: profile))
+            }
+        }
+
+        let withHotkey = all.filter { $0.hotkey != nil }
+        let withoutHotkey = all.filter { $0.hotkey == nil }
+        return withHotkey + withoutHotkey
+    }
 }
 
 struct PickerView: View {
@@ -67,19 +83,8 @@ struct PickerView: View {
         return matching + rest
     }
 
-    /// Items with hotkeys first, items without hotkeys at the end.
     private var pickerItems: [PickerItem] {
-        var all: [PickerItem] = sortedApps.map { PickerItem(app: $0) }
-        all += browsers.map { PickerItem(browser: $0) }
-        for browser in browsers {
-            for profile in browser.profiles where profile.hotkey != nil {
-                all.append(PickerItem(browser: browser, profile: profile))
-            }
-        }
-
-        let withHotkey = all.filter { $0.hotkey != nil }
-        let withoutHotkey = all.filter { $0.hotkey == nil }
-        return withHotkey + withoutHotkey
+        PickerItem.buildItems(browsers: browsers, apps: sortedApps)
     }
 
     var body: some View {
