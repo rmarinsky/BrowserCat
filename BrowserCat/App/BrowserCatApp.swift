@@ -13,17 +13,12 @@ struct BrowserCatApp: App {
             .environment(appDelegate.appState)
             .onChange(of: appDelegate.appState.shouldOpenSettings) { _, shouldOpen in
                 if shouldOpen {
-                    let start = CFAbsoluteTimeGetCurrent()
-                    Log.settings.debug("⏱ Settings: openSettings() called")
-                    openSettings()
-                    let elapsed = (CFAbsoluteTimeGetCurrent() - start) * 1000
-                    Log.settings.debug("⏱ Settings: openSettings() returned in \(elapsed, format: .fixed(precision: 1))ms")
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        NSApp.activate(ignoringOtherApps: true)
-                        let total = (CFAbsoluteTimeGetCurrent() - start) * 1000
-                        Log.settings.debug("⏱ Settings: NSApp.activate completed, total \(total, format: .fixed(precision: 1))ms since open")
-                    }
                     appDelegate.appState.shouldOpenSettings = false
+                    // The app may be in .prohibited policy after the picker closes,
+                    // so switch to .accessory before opening settings.
+                    NSApp.setActivationPolicy(.accessory)
+                    openSettings()
+                    NSApp.activate(ignoringOtherApps: true)
                 }
             }
         } label: {
