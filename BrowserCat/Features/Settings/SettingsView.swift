@@ -22,6 +22,11 @@ struct SettingsView: View {
                 .tabItem {
                     Label("Rules", systemImage: "arrow.triangle.branch")
                 }
+
+            AboutSettingsView()
+                .tabItem {
+                    Label("About", systemImage: "info.circle")
+                }
         }
         .frame(width: 450, height: 550)
         .onAppear {

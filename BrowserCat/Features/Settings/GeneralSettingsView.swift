@@ -42,14 +42,6 @@ struct GeneralSettingsView: View {
                     .font(.caption)
             }
 
-            Section("About") {
-                LabeledContent("Version") {
-                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")
-                }
-                LabeledContent("Build") {
-                    Text(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")
-                }
-            }
         }
         .formStyle(.grouped)
         .onAppear {

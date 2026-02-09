@@ -23,6 +23,7 @@
 		5F23D60EC26296251C82EF7F /* RuleEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD02DB18B09EEEDF904B7B0 /* RuleEditorSheet.swift */; };
 		6F07F9EB2F97B3BDB77D7272 /* URLBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F58A10AE122711CA18CFCC /* URLBar.swift */; };
 		71B0FC9DF2CB2325A4EC1531 /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D53412ED3D36A36EB74572E2 /* MenuBarContentView.swift */; };
+		72017291AF4DF333D2271C79 /* AboutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D51BBF8B8D0CAAEB1CE7E42 /* AboutSettingsView.swift */; };
 		8072A141376ABD71A9042FE7 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49935385F6579EE0B58C7844 /* AppState.swift */; };
 		8DF04712689387C65E1BAC74 /* InstalledBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F5D838F4BF991EB6612E7E /* InstalledBrowser.swift */; };
 		8E681B79A4D2B4B628A7007A /* Pow in Frameworks */ = {isa = PBXBuildFile; productRef = 9FD3A22C3EBE079A14313E6F /* Pow */; };
@@ -59,6 +60,7 @@
 		7C18E301F6F8EA0AACA163D7 /* AppDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDetector.swift; sourceTree = "<group>"; };
 		7C5D53588C9BA3889415BA12 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		97F5D838F4BF991EB6612E7E /* InstalledBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledBrowser.swift; sourceTree = "<group>"; };
+		9D51BBF8B8D0CAAEB1CE7E42 /* AboutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsView.swift; sourceTree = "<group>"; };
 		A070C41E401B5290F413D575 /* InstalledApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApp.swift; sourceTree = "<group>"; };
 		A1C4DFF9C7A6EAE8E7F2AF42 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A957F8E312EE8E0A6C94BB59 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 		FE77B0F45A318AE12CDE3FE2 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				9D51BBF8B8D0CAAEB1CE7E42 /* AboutSettingsView.swift */,
 				264E63E168650F465B84E907 /* AppsSettingsView.swift */,
 				63AED79B785DD15CEE39A472 /* GeneralSettingsView.swift */,
 				15D579EEA70DF8B2B9A28E59 /* HotkeyRecorder.swift */,
@@ -296,6 +299,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				72017291AF4DF333D2271C79 /* AboutSettingsView.swift in Sources */,
 				1503232BF0115C1B438BA0B6 /* AppDefinition.swift in Sources */,
 				DCA3D7431055DB8569224BA7 /* AppDelegate.swift in Sources */,
 				48A29D538BDDE0C9C84D4991 /* AppDetector.swift in Sources */,
@@ -367,7 +371,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 8JL9TM5WLG;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -381,7 +385,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
@@ -462,7 +466,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 8JL9TM5WLG;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -480,7 +484,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
