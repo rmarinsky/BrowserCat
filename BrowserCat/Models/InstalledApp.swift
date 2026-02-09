@@ -12,6 +12,7 @@ struct InstalledApp: Identifiable, Equatable {
     var isVisible: Bool
     var sortOrder: Int
     var hotkey: Character?
+    var hotkeyKeyCode: UInt16?
 
     // Non-codable, loaded at runtime
     var icon: NSImage?
@@ -26,6 +27,7 @@ struct InstalledApp: Identifiable, Equatable {
             && lhs.isVisible == rhs.isVisible
             && lhs.sortOrder == rhs.sortOrder
             && lhs.hotkey == rhs.hotkey
+            && lhs.hotkeyKeyCode == rhs.hotkeyKeyCode
     }
 
     /// Check if this app handles the given URL based on host patterns
@@ -45,6 +47,7 @@ struct AppConfig: Codable {
     var displayName: String
     var isVisible: Bool
     var hotkey: String?
+    var hotkeyKeyCode: UInt16?
     var sortOrder: Int
 
     init(from app: InstalledApp) {
@@ -52,6 +55,7 @@ struct AppConfig: Codable {
         displayName = app.displayName
         isVisible = app.isVisible
         hotkey = app.hotkey.map { String($0) }
+        hotkeyKeyCode = app.hotkeyKeyCode
         sortOrder = app.sortOrder
     }
 }

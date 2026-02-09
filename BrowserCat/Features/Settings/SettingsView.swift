@@ -1,26 +1,26 @@
 import SwiftUI
 
 struct SettingsView: View {
-    var appDelegate: AppDelegate
-
     var body: some View {
-        let start = CFAbsoluteTimeGetCurrent()
-        let _ = Log.settings.debug("⏱ SettingsView: body evaluation started")
-
         TabView {
-            GeneralSettingsView(appDelegate: appDelegate)
+            GeneralSettingsView()
                 .tabItem {
                     Label("General", systemImage: "gear")
                 }
 
-            AppsSettingsView(appDelegate: appDelegate)
+            AppsSettingsView()
                 .tabItem {
                     Label("Apps", systemImage: "square.grid.2x2")
                 }
 
-            RulesSettingsView(appDelegate: appDelegate)
+            RulesSettingsView()
                 .tabItem {
                     Label("Rules", systemImage: "arrow.triangle.branch")
+                }
+
+            HistorySettingsView()
+                .tabItem {
+                    Label("History", systemImage: "clock")
                 }
 
             AboutSettingsView()
@@ -29,9 +29,5 @@ struct SettingsView: View {
                 }
         }
         .frame(width: 450, height: 550)
-        .onAppear {
-            let elapsed = (CFAbsoluteTimeGetCurrent() - start) * 1000
-            Log.settings.debug("⏱ SettingsView: onAppear, \(elapsed, format: .fixed(precision: 1))ms since body")
-        }
     }
 }

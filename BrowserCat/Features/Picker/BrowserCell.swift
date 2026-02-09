@@ -60,12 +60,6 @@ struct BrowserCell: View {
                 }
             }
 
-            if let profile, let email = profile.email {
-                Text(email)
-                    .font(.system(size: 8))
-                    .foregroundStyle(.secondary.opacity(0.6))
-                    .lineLimit(1)
-            }
         }
         .frame(width: 72, height: 78)
         .background(

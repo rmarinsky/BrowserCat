@@ -37,35 +37,41 @@ struct AboutSettingsView: View {
                 }
 
                 Link(destination: URL(string: "https://rmarinsky.com.ua")!) {
-                    LabeledContent("Website") {
+                    LabeledContent {
                         HStack(spacing: 4) {
                             Text("rmarinsky.com.ua")
                             Image(systemName: "arrow.up.right.square")
                                 .font(.caption)
                         }
                         .foregroundStyle(.link)
+                    } label: {
+                        Label("Website", systemImage: "globe")
                     }
                 }
 
                 Link(destination: URL(string: "https://github.com/rmarinsky")!) {
-                    LabeledContent("GitHub") {
+                    LabeledContent {
                         HStack(spacing: 4) {
                             Text("@rmarinsky")
                             Image(systemName: "arrow.up.right.square")
                                 .font(.caption)
                         }
                         .foregroundStyle(.link)
+                    } label: {
+                        Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                 }
 
                 Link(destination: URL(string: "https://linkedin.com/in/rmarinsky")!) {
-                    LabeledContent("LinkedIn") {
+                    LabeledContent {
                         HStack(spacing: 4) {
                             Text("in/rmarinsky")
                             Image(systemName: "arrow.up.right.square")
                                 .font(.caption)
                         }
                         .foregroundStyle(.link)
+                    } label: {
+                        Label("LinkedIn", systemImage: "briefcase")
                     }
                 }
             }
@@ -73,7 +79,7 @@ struct AboutSettingsView: View {
             Section {
                 Link(destination: URL(string: "https://base.monobank.ua/3yGFDUvCLJuNhm#subscriptions")!) {
                     HStack {
-                        Text("💛 Support the Developer")
+                        Label("Support the Developer", systemImage: "heart.fill")
                             .fontWeight(.medium)
                         Spacer()
                         Image(systemName: "arrow.up.right.square")
@@ -85,18 +91,22 @@ struct AboutSettingsView: View {
 
             Section("Project") {
                 Link(destination: URL(string: "https://github.com/rmarinsky/BrowserCat")!) {
-                    LabeledContent("Source Code") {
+                    LabeledContent {
                         HStack(spacing: 4) {
                             Text("rmarinsky/BrowserCat")
                             Image(systemName: "arrow.up.right.square")
                                 .font(.caption)
                         }
                         .foregroundStyle(.link)
+                    } label: {
+                        Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                 }
 
-                LabeledContent("License") {
+                LabeledContent {
                     Text("MIT")
+                } label: {
+                    Label("License", systemImage: "doc.text")
                 }
             }
         }

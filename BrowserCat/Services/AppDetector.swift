@@ -7,8 +7,6 @@ final class AppDetector {
     /// Detect installed apps from the curated AppDefinition registry.
     /// Only shows apps explicitly listed in the registry (like Browserosaurus).
     func detectApps() -> [InstalledApp] {
-        let start = CFAbsoluteTimeGetCurrent()
-
         var apps: [InstalledApp] = []
         var seenBundleIDs: Set<String> = []
         var index = 0
@@ -42,7 +40,6 @@ final class AppDetector {
         }
 
         Log.apps.info("Detected \(apps.count) apps")
-        Log.apps.debug("⏱ detectApps took \((CFAbsoluteTimeGetCurrent() - start) * 1000, format: .fixed(precision: 1))ms")
         return apps
     }
 

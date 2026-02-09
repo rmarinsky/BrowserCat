@@ -3,64 +3,63 @@ import SwiftUI
 
 struct AppsSettingsView: View {
     @Environment(AppState.self) private var appState
-    var appDelegate: AppDelegate
+    @Environment(\.browserManager) private var browserManager
+    @Environment(\.appManager) private var appManager
 
-    @State private var hotkeyTarget: String? // "browserID" or "browserID:profileDir"
+    @State private var hotkeyTarget: HotkeyTarget?
     @State private var showIgnored: Bool = false
-    @State private var clearedTarget: String? = nil
+    @State private var clearedTarget: HotkeyTarget?
 
     private var activeBrowsers: [InstalledBrowser] {
         appState.browsers.filter { !$0.isIgnored }
     }
 
     var body: some View {
-        let start = CFAbsoluteTimeGetCurrent()
-        let _ = Log.settings.debug("⏱ AppsSettingsView: body evaluation started, \(appState.browsers.count) browsers, \(activeBrowsers.count) active")
-
         @Bindable var state = appState
 
+        VStack(spacing: 0) {
         ScrollView {
             VStack(spacing: 0) {
                 ForEach(activeBrowsers) { browser in
-                    let index = state.browsers.firstIndex(where: { $0.id == browser.id })!
-
-                    VStack(spacing: 0) {
-                        browserRow(browser: browser, index: index)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-
-                        // Profiles
-                        if browser.hasProfiles {
-                            ForEach(Array(browser.profiles.enumerated()), id: \.element.id) { profileIdx, profile in
-                                Divider()
-                                    .padding(.leading, 56)
-
-                                profileRow(
-                                    profile: profile,
-                                    browserIndex: index,
-                                    profileIndex: profileIdx
-                                )
+                    if let index = state.browsers.firstIndex(where: { $0.id == browser.id }) {
+                        VStack(spacing: 0) {
+                            browserRow(browser: browser, index: index)
                                 .padding(.horizontal, 16)
-                                .padding(.vertical, 6)
-                            }
-                        }
-                    }
-                    .transition(
-                        .asymmetric(
-                            insertion: .movingParts.move(edge: .leading),
-                            removal: .movingParts.move(edge: .trailing)
-                        )
-                    )
-                    .contextMenu {
-                        Button("Ignore") {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                state.browsers[index].isIgnored = true
-                                appDelegate.saveBrowserConfig()
-                            }
-                        }
-                    }
+                                .padding(.vertical, 10)
 
-                    Divider()
+                            // Profiles
+                            if browser.hasProfiles {
+                                ForEach(Array(browser.profiles.enumerated()), id: \.element.id) { profileIdx, profile in
+                                    Divider()
+                                        .padding(.leading, 56)
+
+                                    profileRow(
+                                        profile: profile,
+                                        browserIndex: index,
+                                        profileIndex: profileIdx
+                                    )
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 4)
+                                }
+                            }
+                        }
+                        .transition(
+                            .asymmetric(
+                                insertion: .movingParts.move(edge: .leading),
+                                removal: .movingParts.move(edge: .trailing)
+                            )
+                        )
+                        .contextMenu {
+                            Button("Ignore") {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                    state.browsers[index].isIgnored = true
+                                    browserManager?.save(state.browsers)
+                                }
+                            }
+                        }
+
+                        Divider()
+                    }
                 }
 
                 // Ignored section
@@ -90,7 +89,7 @@ struct AppsSettingsView: View {
                                         if let idx = state.browsers.firstIndex(where: { $0.id == browser.id }) {
                                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                                 state.browsers[idx].isIgnored = false
-                                                appDelegate.saveBrowserConfig()
+                                                browserManager?.save(state.browsers)
                                             }
                                         }
                                     }
@@ -116,78 +115,84 @@ struct AppsSettingsView: View {
                     Divider()
 
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("Native Apps")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Native Apps")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                            Text("Shown only for links they support")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
 
                         ForEach(state.apps) { app in
-                            let appIndex = state.apps.firstIndex(where: { $0.id == app.id })!
-
-                            HStack(spacing: 12) {
-                                if let icon = app.icon {
-                                    Image(nsImage: icon)
-                                        .resizable()
-                                        .frame(width: 32, height: 32)
-                                } else {
-                                    Image(systemName: "app.fill")
-                                        .font(.system(size: 24))
-                                        .frame(width: 32, height: 32)
-                                }
-
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(app.displayName)
-                                        .font(.system(size: 13, weight: .medium))
-                                    if let version = app.version {
-                                        Text(version)
-                                            .font(.system(size: 10))
-                                            .foregroundStyle(.secondary)
+                            if let appIndex = state.apps.firstIndex(where: { $0.id == app.id }) {
+                                HStack(spacing: 12) {
+                                    if let icon = app.icon {
+                                        Image(nsImage: icon)
+                                            .resizable()
+                                            .frame(width: 32, height: 32)
+                                    } else {
+                                        Image(systemName: "app.fill")
+                                            .font(.system(size: 24))
+                                            .frame(width: 32, height: 32)
                                     }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                                // Hotkey
-                                hotkeyButton(
-                                    hotkey: app.hotkey,
-                                    targetID: "app:\(app.id)"
-                                )
-
-                                // Visibility toggle
-                                Toggle("", isOn: Binding(
-                                    get: { app.isVisible },
-                                    set: { newValue in
-                                        appState.apps[appIndex].isVisible = newValue
-                                        appDelegate.saveAppConfig()
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(app.displayName)
+                                            .font(.system(size: 13, weight: .medium))
+                                        if let version = app.version {
+                                            Text(version)
+                                                .font(.system(size: 10))
+                                                .foregroundStyle(.secondary)
+                                        }
                                     }
-                                ))
-                                .toggleStyle(.switch)
-                                .controlSize(.mini)
-                                .labelsHidden()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                    // Hotkey
+                                    hotkeyButton(
+                                        hotkey: app.hotkey,
+                                        target: .app(id: app.id)
+                                    )
+
+                                    // Visibility toggle
+                                    Toggle("", isOn: Binding(
+                                        get: { app.isVisible },
+                                        set: { newValue in
+                                            appState.apps[appIndex].isVisible = newValue
+                                            appManager?.save(appState.apps)
+                                        }
+                                    ))
+                                    .toggleStyle(.switch)
+                                    .controlSize(.mini)
+                                    .labelsHidden()
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+
+                                Divider()
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-
-                            Divider()
                         }
                     }
                 }
 
-                // Rescan button
-                Divider()
+            }
+        }
 
+            Divider()
+
+            HStack {
                 Button {
-                    appDelegate.refreshBrowsers()
-                    appDelegate.refreshApps()
+                    browserManager?.refreshBrowsers(into: appState)
+                    appManager?.refreshApps(into: appState)
                 } label: {
                     Label("Rescan Apps", systemImage: "arrow.clockwise")
                 }
-                .padding(16)
+
+                Spacer()
             }
-        }
-        .onAppear {
-            let elapsed = (CFAbsoluteTimeGetCurrent() - start) * 1000
-            Log.settings.debug("⏱ AppsSettingsView: onAppear, \(elapsed, format: .fixed(precision: 1))ms since body")
+            .padding(8)
         }
     }
 
@@ -196,7 +201,6 @@ struct AppsSettingsView: View {
     @ViewBuilder
     private func browserRow(browser: InstalledBrowser, index: Int) -> some View {
         HStack(spacing: 12) {
-            // Icon
             if let icon = browser.icon {
                 Image(nsImage: icon)
                     .resizable()
@@ -207,7 +211,6 @@ struct AppsSettingsView: View {
                     .frame(width: 32, height: 32)
             }
 
-            // Name + version
             VStack(alignment: .leading, spacing: 1) {
                 Text(browser.displayName)
                     .font(.system(size: 13, weight: .medium))
@@ -219,18 +222,16 @@ struct AppsSettingsView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Hotkey
             hotkeyButton(
                 hotkey: browser.hotkey,
-                targetID: browser.id
+                target: .browser(id: browser.id)
             )
 
-            // Visibility toggle
             Toggle("", isOn: Binding(
                 get: { browser.isVisible },
                 set: { newValue in
                     appState.browsers[index].isVisible = newValue
-                    appDelegate.saveBrowserConfig()
+                    browserManager?.save(appState.browsers)
                 }
             ))
             .toggleStyle(.switch)
@@ -243,46 +244,49 @@ struct AppsSettingsView: View {
 
     @ViewBuilder
     private func profileRow(profile: BrowserProfile, browserIndex: Int, profileIndex: Int) -> some View {
-        HStack(spacing: 12) {
-            // Avatar in a 32pt frame to match browser icon width
-            profileAvatar(for: profile)
-                .frame(width: 32, height: 32)
+        HStack(spacing: 8) {
+            Spacer()
+                .frame(width: 32)
 
-            // Name + email
-            VStack(alignment: .leading, spacing: 1) {
+            profileAvatar(for: profile)
+
+            VStack(alignment: .leading, spacing: 0) {
                 Text(profile.displayName)
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                 if let email = profile.email {
                     Text(email)
-                        .font(.system(size: 10))
+                        .font(.system(size: 9))
                         .foregroundStyle(.tertiary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Profile hotkey
             hotkeyButton(
                 hotkey: profile.hotkey,
-                targetID: "\(appState.browsers[browserIndex].id):\(profile.directoryName)"
+                target: .profile(browserId: appState.browsers[browserIndex].id, directoryName: profile.directoryName)
             )
 
-            // Invisible toggle placeholder to align with browser row
-            Toggle("", isOn: .constant(true))
-                .toggleStyle(.switch)
-                .controlSize(.mini)
-                .labelsHidden()
-                .hidden()
+            Toggle("", isOn: Binding(
+                get: { profile.isVisible },
+                set: { newValue in
+                    appState.browsers[browserIndex].profiles[profileIndex].isVisible = newValue
+                    browserManager?.save(appState.browsers)
+                }
+            ))
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .labelsHidden()
         }
     }
 
     // MARK: - Hotkey Button
 
     @ViewBuilder
-    private func hotkeyButton(hotkey: Character?, targetID: String) -> some View {
-        let isCleared = clearedTarget == targetID
+    private func hotkeyButton(hotkey: Character?, target: HotkeyTarget) -> some View {
+        let isCleared = clearedTarget == target
 
         Button {
-            hotkeyTarget = targetID
+            hotkeyTarget = target
         } label: {
             Text(hotkey != nil ? String(hotkey!).uppercased() : "SET KEY")
                 .font(.system(size: 12, weight: .medium, design: .monospaced))
@@ -303,63 +307,62 @@ struct AppsSettingsView: View {
         .buttonStyle(.plain)
         .help(isCleared ? "Key was already in use and has been reassigned" : "")
         .popover(isPresented: Binding(
-            get: { hotkeyTarget == targetID },
+            get: { hotkeyTarget == target },
             set: { if !$0 { hotkeyTarget = nil } }
         )) {
-            HotkeyRecorder { key in
-                applyHotkey(key, targetID: targetID)
+            HotkeyRecorder { result in
+                applyHotkey(result, target: target)
                 hotkeyTarget = nil
             }
         }
     }
 
-    private func applyHotkey(_ key: Character?, targetID: String) {
-        // Clear duplicate assignment if setting a new key
-        if let key {
-            clearDuplicateHotkey(key, excludingTarget: targetID)
+    private func applyHotkey(_ result: (key: Character, keyCode: UInt16)?, target: HotkeyTarget) {
+        if let result {
+            clearDuplicateHotkey(result.keyCode, excludingTarget: target)
         }
 
-        let parts = targetID.split(separator: ":", maxSplits: 1)
+        let key = result?.key
+        let keyCode = result?.keyCode
 
-        if parts.count == 2 && parts[0] == "app" {
-            // App hotkey: "app:bundleID"
-            let appID = String(parts[1])
-            if let aIdx = appState.apps.firstIndex(where: { $0.id == appID }) {
+        switch target {
+        case let .app(id):
+            if let aIdx = appState.apps.firstIndex(where: { $0.id == id }) {
                 appState.apps[aIdx].hotkey = key
+                appState.apps[aIdx].hotkeyKeyCode = keyCode
             }
-            appDelegate.saveAppConfig()
-            return
-        }
+            appManager?.save(appState.apps)
 
-        let browserID = String(parts[0])
+        case let .browser(id):
+            if let bIdx = appState.browsers.firstIndex(where: { $0.id == id }) {
+                appState.browsers[bIdx].hotkey = key
+                appState.browsers[bIdx].hotkeyKeyCode = keyCode
+            }
+            browserManager?.save(appState.browsers)
 
-        if parts.count == 2 {
-            // Profile hotkey: "browserID:profileDir"
-            let profileDir = String(parts[1])
-            if let bIdx = appState.browsers.firstIndex(where: { $0.id == browserID }),
-               let pIdx = appState.browsers[bIdx].profiles.firstIndex(where: { $0.directoryName == profileDir })
+        case let .profile(browserId, directoryName):
+            if let bIdx = appState.browsers.firstIndex(where: { $0.id == browserId }),
+               let pIdx = appState.browsers[bIdx].profiles.firstIndex(where: { $0.directoryName == directoryName })
             {
                 appState.browsers[bIdx].profiles[pIdx].hotkey = key
+                appState.browsers[bIdx].profiles[pIdx].hotkeyKeyCode = keyCode
             }
-        } else {
-            // Browser hotkey
-            if let bIdx = appState.browsers.firstIndex(where: { $0.id == browserID }) {
-                appState.browsers[bIdx].hotkey = key
-            }
+            browserManager?.save(appState.browsers)
         }
-        appDelegate.saveBrowserConfig()
     }
 
-    private func clearDuplicateHotkey(_ key: Character, excludingTarget: String) {
+    private func clearDuplicateHotkey(_ keyCode: UInt16, excludingTarget: HotkeyTarget) {
         // Check app hotkeys
         for aIdx in appState.apps.indices {
             let app = appState.apps[aIdx]
-            let appTarget = "app:\(app.id)"
-            if app.hotkey == key && appTarget != excludingTarget {
+            let appTarget = HotkeyTarget.app(id: app.id)
+            if app.hotkeyKeyCode == keyCode && appTarget != excludingTarget {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     appState.apps[aIdx].hotkey = nil
+                    appState.apps[aIdx].hotkeyKeyCode = nil
                     clearedTarget = appTarget
                 }
+                appManager?.save(appState.apps)
                 scheduleClearedDismiss()
                 return
             }
@@ -369,11 +372,14 @@ struct AppsSettingsView: View {
             let browser = appState.browsers[bIdx]
 
             // Check browser-level hotkey
-            if browser.hotkey == key && browser.id != excludingTarget {
+            let browserTarget = HotkeyTarget.browser(id: browser.id)
+            if browser.hotkeyKeyCode == keyCode && browserTarget != excludingTarget {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     appState.browsers[bIdx].hotkey = nil
-                    clearedTarget = browser.id
+                    appState.browsers[bIdx].hotkeyKeyCode = nil
+                    clearedTarget = browserTarget
                 }
+                browserManager?.save(appState.browsers)
                 scheduleClearedDismiss()
                 return
             }
@@ -381,12 +387,14 @@ struct AppsSettingsView: View {
             // Check profile hotkeys
             for pIdx in browser.profiles.indices {
                 let profile = browser.profiles[pIdx]
-                let profileTarget = "\(browser.id):\(profile.directoryName)"
-                if profile.hotkey == key && profileTarget != excludingTarget {
+                let profileTarget = HotkeyTarget.profile(browserId: browser.id, directoryName: profile.directoryName)
+                if profile.hotkeyKeyCode == keyCode && profileTarget != excludingTarget {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         appState.browsers[bIdx].profiles[pIdx].hotkey = nil
+                        appState.browsers[bIdx].profiles[pIdx].hotkeyKeyCode = nil
                         clearedTarget = profileTarget
                     }
+                    browserManager?.save(appState.browsers)
                     scheduleClearedDismiss()
                     return
                 }
@@ -408,10 +416,10 @@ struct AppsSettingsView: View {
     private func profileAvatar(for profile: BrowserProfile) -> some View {
         let initial = profile.displayName.first.map { String($0).uppercased() } ?? "?"
         return Text(initial)
-            .font(.system(size: 9, weight: .semibold))
+            .font(.system(size: 8, weight: .semibold))
             .foregroundStyle(.white)
-            .frame(width: 22, height: 22)
+            .frame(width: 18, height: 18)
             .background(Color.profileAvatar(for: profile.displayName), in: Circle())
-            .overlay(Circle().strokeBorder(.white.opacity(0.8), lineWidth: 1.5))
+            .overlay(Circle().strokeBorder(.white.opacity(0.8), lineWidth: 1))
     }
 }

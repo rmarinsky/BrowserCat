@@ -10,14 +10,14 @@ private class KeyablePanel: NSPanel {
 @MainActor
 final class PickerWindowController: NSObject {
     private var panel: NSPanel?
-    private weak var appState: AppState?
-    private weak var delegate: AppDelegate?
+    private let appState: AppState
+    private let coordinator: PickerCoordinator
     private var clickMonitor: Any?
     private var keyMonitor: Any?
 
-    init(appState: AppState, delegate: AppDelegate) {
+    init(appState: AppState, coordinator: PickerCoordinator) {
         self.appState = appState
-        self.delegate = delegate
+        self.coordinator = coordinator
     }
 
     func show() {
@@ -25,8 +25,9 @@ final class PickerWindowController: NSObject {
         self.panel = panel
 
         let hostingView = NSHostingView(
-            rootView: PickerView(appDelegate: delegate!)
-                .environment(appState!)
+            rootView: PickerView()
+                .environment(appState)
+                .environment(\.pickerCoordinator, coordinator)
         )
         hostingView.autoresizingMask = [.width, .height]
         hostingView.frame = panel.contentView!.bounds
@@ -71,32 +72,30 @@ final class PickerWindowController: NSObject {
         }
         panel?.orderOut(nil)
         panel = nil
-        NSApp.setActivationPolicy(.prohibited)
-        appState?.isPickerVisible = false
-        delegate?.appState.pendingURL = nil
+        NSApp.setActivationPolicy(.accessory)
+        appState.isPickerVisible = false
+        appState.pendingURL = nil
         Log.picker.debug("Picker dismissed")
     }
 
     // MARK: - Key Handling
 
     private func handleKeyEvent(_ event: NSEvent) -> Bool {
-        guard let appState, let delegate else { return false }
-
         let browsers = appState.visibleBrowsers
         let allApps = appState.visibleApps
         let items = PickerItem.buildItems(browsers: browsers, apps: allApps)
 
         switch Int(event.keyCode) {
         case 53: // Escape
-            delegate.dismissPicker()
+            coordinator.dismissPicker(state: appState)
             return true
         case 36: // Return
             if items.indices.contains(appState.focusedBrowserIndex) {
                 let item = items[appState.focusedBrowserIndex]
                 if let app = item.app {
-                    delegate.openURL(with: app)
+                    coordinator.openURL(with: app, state: appState)
                 } else if let browser = item.browser {
-                    delegate.openURL(with: browser, mode: .normal, profile: item.profile)
+                    coordinator.openURL(with: browser, mode: .normal, profile: item.profile, state: appState)
                 }
             }
             return true
@@ -113,17 +112,22 @@ final class PickerWindowController: NSObject {
             moveFocus(-columnsCount, itemCount: items.count)
             return true
         default:
-            guard let keyChar = event.charactersIgnoringModifiers?.lowercased().first else { return false }
+            let pressedKeyCode = event.keyCode
+            let keyChar = event.charactersIgnoringModifiers?.lowercased().first
             let isPrivate = event.modifierFlags.contains(.option) || event.modifierFlags.contains(.shift)
             let mode: BrowserLauncher.OpenMode = isPrivate ? .privateMode : .normal
 
-            // Check app hotkeys first — apps always open in normal mode
-            // (Option/Shift modifier is ignored for native apps)
+            // Check app hotkeys first
             for app in allApps {
-                if let hotkey = app.hotkey,
+                if let code = app.hotkeyKeyCode, code == pressedKeyCode {
+                    coordinator.openURL(with: app, state: appState)
+                    return true
+                }
+                // Fallback: character match for configs saved before keyCode support
+                if app.hotkeyKeyCode == nil, let hotkey = app.hotkey, let keyChar,
                    Character(String(hotkey).lowercased()) == keyChar
                 {
-                    delegate.openURL(with: app)
+                    coordinator.openURL(with: app, state: appState)
                     return true
                 }
             }
@@ -131,20 +135,22 @@ final class PickerWindowController: NSObject {
             // Check profile hotkeys (more specific)
             for browser in browsers {
                 if let profile = browser.profiles.first(where: { p in
-                    guard let hotkey = p.hotkey else { return false }
+                    if let code = p.hotkeyKeyCode { return code == pressedKeyCode }
+                    guard let hotkey = p.hotkey, let keyChar else { return false }
                     return Character(String(hotkey).lowercased()) == keyChar
                 }) {
-                    delegate.openURL(with: browser, mode: mode, profile: profile)
+                    coordinator.openURL(with: browser, mode: mode, profile: profile, state: appState)
                     return true
                 }
             }
 
             // Then check browser hotkeys
             if let index = browsers.firstIndex(where: { browser in
-                guard let hotkey = browser.hotkey else { return false }
+                if let code = browser.hotkeyKeyCode { return code == pressedKeyCode }
+                guard let hotkey = browser.hotkey, let keyChar else { return false }
                 return Character(String(hotkey).lowercased()) == keyChar
             }) {
-                delegate.openURL(with: browsers[index], mode: mode)
+                coordinator.openURL(with: browsers[index], mode: mode, state: appState)
                 return true
             }
             return false
@@ -156,7 +162,6 @@ final class PickerWindowController: NSObject {
     }
 
     private func moveFocus(_ delta: Int, itemCount: Int) {
-        guard let appState else { return }
         let newIndex = appState.focusedBrowserIndex + delta
         if newIndex >= 0 && newIndex < itemCount {
             appState.focusedBrowserIndex = newIndex

@@ -25,6 +25,10 @@ struct PickerItem: Identifiable {
         profile?.hotkey ?? browser?.hotkey ?? app?.hotkey
     }
 
+    var hotkeyKeyCode: UInt16? {
+        profile?.hotkeyKeyCode ?? browser?.hotkeyKeyCode ?? app?.hotkeyKeyCode
+    }
+
     init(browser: InstalledBrowser) {
         self.id = browser.id
         self.browser = browser
@@ -46,26 +50,27 @@ struct PickerItem: Identifiable {
         self.app = app
     }
 
-    /// Build the ordered picker item list: apps first, then browsers,
-    /// then profile-with-hotkey entries. Items with hotkeys sort before those without.
+    /// Build the ordered picker item list.
+    /// Priority: profile-with-hotkey first, then apps/browsers with hotkeys, then the rest.
     static func buildItems(browsers: [InstalledBrowser], apps: [InstalledApp]) -> [PickerItem] {
         var all: [PickerItem] = apps.map { PickerItem(app: $0) }
         all += browsers.map { PickerItem(browser: $0) }
         for browser in browsers {
-            for profile in browser.profiles where profile.hotkey != nil {
+            for profile in browser.profiles where profile.hotkey != nil && profile.isVisible {
                 all.append(PickerItem(browser: browser, profile: profile))
             }
         }
 
-        let withHotkey = all.filter { $0.hotkey != nil }
+        let profileWithHotkey = all.filter { $0.profile != nil && $0.hotkey != nil }
+        let otherWithHotkey = all.filter { $0.profile == nil && $0.hotkey != nil }
         let withoutHotkey = all.filter { $0.hotkey == nil }
-        return withHotkey + withoutHotkey
+        return profileWithHotkey + otherWithHotkey + withoutHotkey
     }
 }
 
 struct PickerView: View {
     @Environment(AppState.self) private var appState
-    var appDelegate: AppDelegate
+    @Environment(\.pickerCoordinator) private var pickerCoordinator
 
     @State private var hoveredIndex: Int?
     @State private var profilePopoverBrowserID: String?
@@ -74,17 +79,14 @@ struct PickerView: View {
         appState.visibleBrowsers
     }
 
-    /// All visible apps, with host-matching ones first
-    private var sortedApps: [InstalledApp] {
-        let all = appState.visibleApps
-        guard let url = appState.pendingURL else { return all }
-        let matching = all.filter { $0.matchesHost(of: url) }
-        let rest = all.filter { !$0.matchesHost(of: url) }
-        return matching + rest
+    /// Only apps that match the pending URL's host or scheme
+    private var matchingApps: [InstalledApp] {
+        guard let url = appState.pendingURL else { return [] }
+        return appState.visibleApps.filter { $0.matchesHost(of: url) }
     }
 
     private var pickerItems: [PickerItem] {
-        PickerItem.buildItems(browsers: browsers, apps: sortedApps)
+        PickerItem.buildItems(browsers: browsers, apps: matchingApps)
     }
 
     var body: some View {
@@ -116,7 +118,7 @@ struct PickerView: View {
                                 if let browser = item.browser {
                                     ProfilePopover(browser: browser) { profile in
                                         profilePopoverBrowserID = nil
-                                        appDelegate.openURL(with: browser, mode: .normal, profile: profile)
+                                        pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
                                     }
                                 }
                             }
@@ -126,23 +128,23 @@ struct PickerView: View {
                             .contextMenu {
                                 if let app = item.app {
                                     Button("Open in \(app.displayName)") {
-                                        appDelegate.openURL(with: app)
+                                        pickerCoordinator?.openURL(with: app, state: appState)
                                     }
                                 } else if let browser = item.browser {
                                     Button("Open") {
-                                        appDelegate.openURL(with: browser, mode: .normal, profile: item.profile)
+                                        pickerCoordinator?.openURL(with: browser, mode: .normal, profile: item.profile, state: appState)
                                     }
                                     if browser.supportsPrivateMode {
                                         Button("Open Private") {
-                                            appDelegate.openURL(with: browser, mode: .privateMode, profile: item.profile)
+                                            pickerCoordinator?.openURL(with: browser, mode: .privateMode, profile: item.profile, state: appState)
                                         }
                                     }
                                     if item.profile == nil && browser.hasProfiles {
                                         Divider()
                                         Menu("Open with Profile") {
-                                            ForEach(browser.profiles) { profile in
+                                            ForEach(browser.profiles.filter(\.isVisible)) { profile in
                                                 Button {
-                                                    appDelegate.openURL(with: browser, mode: .normal, profile: profile)
+                                                    pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
                                                 } label: {
                                                     if let email = profile.email {
                                                         Text("\(profile.displayName) (\(email))")
@@ -185,13 +187,13 @@ struct PickerView: View {
 
     private func handleItemTap(_ item: PickerItem) {
         if let app = item.app {
-            appDelegate.openURL(with: app)
+            pickerCoordinator?.openURL(with: app, state: appState)
         } else if let profile = item.profile, let browser = item.browser {
-            appDelegate.openURL(with: browser, mode: .normal, profile: profile)
+            pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
         } else if let browser = item.browser, browser.hasProfiles {
             profilePopoverBrowserID = browser.id
         } else if let browser = item.browser {
-            appDelegate.openURL(with: browser, mode: .normal)
+            pickerCoordinator?.openURL(with: browser, mode: .normal, state: appState)
         }
     }
 }
@@ -246,12 +248,6 @@ struct AppCell: View {
                 .lineLimit(1)
                 .truncationMode(.tail)
 
-            if let version = app.version {
-                Text(version)
-                    .font(.system(size: 8))
-                    .foregroundStyle(.secondary.opacity(0.6))
-                    .lineLimit(1)
-            }
         }
         .frame(width: 72, height: 78)
         .background(

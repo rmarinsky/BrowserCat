@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct HotkeyRecorder: View {
-    var onRecord: (Character?) -> Void
+    var onRecord: ((key: Character, keyCode: UInt16)?) -> Void
 
     @State private var displayText = "Press a key..."
+    @State private var eventMonitor: Any?
 
     var body: some View {
         VStack(spacing: 12) {
@@ -25,15 +26,29 @@ struct HotkeyRecorder: View {
             }
         }
         .padding()
-        .onKeyPress(characters: .alphanumerics) { keyPress in
-            if let char = keyPress.characters.first {
-                onRecord(char)
+        .onAppear {
+            eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                // Delete key clears the hotkey
+                if event.keyCode == 51 {
+                    onRecord(nil)
+                    return nil
+                }
+
+                if let chars = event.charactersIgnoringModifiers?.lowercased(),
+                   let char = chars.first,
+                   char.isLetter || char.isNumber
+                {
+                    onRecord((key: char, keyCode: event.keyCode))
+                    return nil
+                }
+                return event
             }
-            return .handled
         }
-        .onKeyPress(.delete) {
-            onRecord(nil)
-            return .handled
+        .onDisappear {
+            if let monitor = eventMonitor {
+                NSEvent.removeMonitor(monitor)
+                eventMonitor = nil
+            }
         }
     }
 }

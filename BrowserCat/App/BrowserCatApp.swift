@@ -3,32 +3,27 @@ import SwiftUI
 @main
 struct BrowserCatApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @Environment(\.openSettings) private var openSettings
 
     var body: some Scene {
         MenuBarExtra {
             MenuBarContentView(
-                onReopenLastURL: { appDelegate.reopenLastURL() }
+                onReopenURL: { urlString in appDelegate.pickerCoordinator.reopenURL(urlString, state: appDelegate.appState) }
             )
             .environment(appDelegate.appState)
-            .onChange(of: appDelegate.appState.shouldOpenSettings) { _, shouldOpen in
-                if shouldOpen {
-                    appDelegate.appState.shouldOpenSettings = false
-                    // The app may be in .prohibited policy after the picker closes,
-                    // so switch to .accessory before opening settings.
-                    NSApp.setActivationPolicy(.accessory)
-                    openSettings()
-                    NSApp.activate(ignoringOtherApps: true)
-                }
-            }
         } label: {
             Image(systemName: "cat.fill")
         }
         .menuBarExtraStyle(.menu)
 
         Settings {
-            SettingsView(appDelegate: appDelegate)
+            SettingsView()
                 .environment(appDelegate.appState)
+                .environment(\.browserManager, appDelegate.browserManager)
+                .environment(\.appManager, appDelegate.appManager)
+                .environment(\.urlRulesManager, appDelegate.urlRulesManager)
+                .environment(\.defaultBrowserManager, appDelegate.defaultBrowserManager)
+                .environment(\.pickerCoordinator, appDelegate.pickerCoordinator)
+                .environment(\.historyManager, appDelegate.historyManager)
         }
     }
 }

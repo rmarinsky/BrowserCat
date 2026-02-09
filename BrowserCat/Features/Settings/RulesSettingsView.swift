@@ -2,16 +2,13 @@ import SwiftUI
 
 struct RulesSettingsView: View {
     @Environment(AppState.self) private var appState
-    var appDelegate: AppDelegate
+    @Environment(\.urlRulesManager) private var urlRulesManager
 
     @State private var selectedRuleID: UUID?
     @State private var editingRule: URLRule?
     @State private var isAddingNew: Bool = false
 
     var body: some View {
-        let start = CFAbsoluteTimeGetCurrent()
-        let _ = Log.settings.debug("⏱ RulesSettingsView: body evaluation started, \(appState.urlRules.count) rules")
-
         VStack(spacing: 0) {
             if appState.urlRules.isEmpty {
                 emptyState
@@ -100,7 +97,7 @@ struct RulesSettingsView: View {
                 for i in state.urlRules.indices {
                     state.urlRules[i].sortOrder = i
                 }
-                appDelegate.saveURLRules()
+                urlRulesManager?.save(state.urlRules)
             }
         }
         .listStyle(.inset(alternatesRowBackgrounds: true))
@@ -113,7 +110,7 @@ struct RulesSettingsView: View {
                     if let idx = appState.urlRules.firstIndex(where: { $0.id == updatedRule.id }) {
                         appState.urlRules[idx] = updatedRule
                     }
-                    appDelegate.saveURLRules()
+                    urlRulesManager?.save(appState.urlRules)
                     editingRule = nil
                 },
                 onCancel: {
@@ -128,7 +125,7 @@ struct RulesSettingsView: View {
                 apps: appState.visibleApps,
                 onSave: { newRule in
                     appState.urlRules.append(newRule)
-                    appDelegate.saveURLRules()
+                    urlRulesManager?.save(appState.urlRules)
                     isAddingNew = false
                 },
                 onCancel: {
@@ -154,7 +151,7 @@ struct RulesSettingsView: View {
                     for i in appState.urlRules.indices {
                         appState.urlRules[i].sortOrder = i
                     }
-                    appDelegate.saveURLRules()
+                    urlRulesManager?.save(appState.urlRules)
                     selectedRuleID = nil
                 }
             } label: {

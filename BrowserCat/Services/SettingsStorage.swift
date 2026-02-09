@@ -26,11 +26,23 @@ final class SettingsStorage {
         configDir.appendingPathComponent("apps.json")
     }
 
+    private var historyURL: URL {
+        configDir.appendingPathComponent("history.json")
+    }
+
     // MARK: - Simple values
 
     var lastURL: String? {
         get { defaults.string(forKey: "lastURL") }
         set { defaults.set(newValue, forKey: "lastURL") }
+    }
+
+    var recentLinksCount: Int {
+        get {
+            let value = defaults.integer(forKey: "recentLinksCount")
+            return value == 0 ? 3 : value
+        }
+        set { defaults.set(newValue, forKey: "recentLinksCount") }
     }
 
     // MARK: - Browser config persistence
@@ -116,6 +128,35 @@ final class SettingsStorage {
         } catch {
             Log.settings.error("Failed to load app configs: \(error.localizedDescription)")
             return nil
+        }
+    }
+
+    // MARK: - History persistence
+
+    func saveHistory(_ entries: [HistoryEntry]) {
+        do {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(entries)
+            try data.write(to: historyURL, options: .atomic)
+            Log.settings.debug("Saved \(entries.count) history entries")
+        } catch {
+            Log.settings.error("Failed to save history: \(error.localizedDescription)")
+        }
+    }
+
+    func loadHistory() -> [HistoryEntry] {
+        guard fileManager.fileExists(atPath: historyURL.path) else { return [] }
+        do {
+            let data = try Data(contentsOf: historyURL)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let entries = try decoder.decode([HistoryEntry].self, from: data)
+            Log.settings.debug("Loaded \(entries.count) history entries")
+            return entries
+        } catch {
+            Log.settings.error("Failed to load history: \(error.localizedDescription)")
+            return []
         }
     }
 }

@@ -3,12 +3,9 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @Environment(AppState.self) private var appState
-    var appDelegate: AppDelegate
+    @Environment(\.defaultBrowserManager) private var defaultBrowserManager
 
     var body: some View {
-        let start = CFAbsoluteTimeGetCurrent()
-        let _ = Log.settings.debug("⏱ GeneralSettingsView: body evaluation started")
-
         Form {
             Section("Default Browser") {
                 HStack {
@@ -22,7 +19,7 @@ struct GeneralSettingsView: View {
                         Spacer()
 
                         Button("Set as Default") {
-                            appDelegate.setAsDefaultBrowser()
+                            defaultBrowserManager?.setAsDefault(state: appState)
                         }
                     }
                 }
@@ -32,26 +29,30 @@ struct GeneralSettingsView: View {
                 LaunchAtLogin.Toggle("Launch at login")
             }
 
-            Section("Browsers") {
-                Button("Rescan Browsers") {
-                    appDelegate.refreshBrowsers()
+            Section("Menu Bar") {
+                Picker("Recent links", selection: Binding(
+                    get: { appState.recentLinksCount },
+                    set: { newValue in
+                        appState.recentLinksCount = newValue
+                        SettingsStorage.shared.recentLinksCount = newValue
+                    }
+                )) {
+                    ForEach(1...5, id: \.self) { count in
+                        Text("\(count)").tag(count)
+                    }
                 }
+            }
 
-                Text("\(appState.browsers.count) browsers detected")
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
+            Section("Developer") {
+                LabeledContent("Made by") {
+                    Text("Roman Marinsky \u{1F1FA}\u{1F1E6}")
+                }
             }
 
         }
         .formStyle(.grouped)
         .onAppear {
-            let elapsed = (CFAbsoluteTimeGetCurrent() - start) * 1000
-            Log.settings.debug("⏱ GeneralSettingsView: onAppear, \(elapsed, format: .fixed(precision: 1))ms since body")
-
-            let checkStart = CFAbsoluteTimeGetCurrent()
-            appDelegate.checkDefaultBrowserStatus()
-            let checkElapsed = (CFAbsoluteTimeGetCurrent() - checkStart) * 1000
-            Log.settings.debug("⏱ GeneralSettingsView: checkDefaultBrowserStatus took \(checkElapsed, format: .fixed(precision: 1))ms")
+            defaultBrowserManager?.checkIsDefault(state: appState)
         }
     }
 }

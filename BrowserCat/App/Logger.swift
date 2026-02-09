@@ -9,4 +9,5 @@ enum Log {
     static let profiles = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BrowserCat", category: "profiles")
     static let rules = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BrowserCat", category: "rules")
     static let apps = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BrowserCat", category: "apps")
+    static let history = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BrowserCat", category: "history")
 }

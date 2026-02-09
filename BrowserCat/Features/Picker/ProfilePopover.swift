@@ -14,7 +14,7 @@ struct ProfilePopover: View {
                 .padding(.horizontal, 8)
                 .padding(.top, 6)
 
-            ForEach(Array(browser.profiles.enumerated()), id: \.element.id) { index, profile in
+            ForEach(Array(browser.profiles.filter(\.isVisible).enumerated()), id: \.element.id) { index, profile in
                 Button {
                     onSelect(profile)
                 } label: {
