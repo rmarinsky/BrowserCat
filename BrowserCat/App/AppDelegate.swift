@@ -45,6 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.info("Received URL: \(urlString)")
         appState.pendingURL = url
         appState.pendingURLTitle = nil
+        appState.menuBarIconAnimationToken += 1
         fetchTitle(for: url)
 
         // Check URL rules before showing picker
@@ -71,30 +72,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func fetchTitle(for url: URL) {
         Task.detached(priority: .utility) {
-            do {
-                var request = URLRequest(url: url, timeoutInterval: 3)
-                request.httpMethod = "GET"
-                request.setValue("bytes=0-8192", forHTTPHeaderField: "Range")
-                let (data, _) = try await URLSession.shared.data(for: request)
-                guard let html = String(data: data, encoding: .utf8) else { return }
+            let metadata = await LinkMetadataManager.shared.metadata(for: url)
+            guard let title = metadata.title else { return }
 
-                guard let startRange = html.range(of: "<title", options: .caseInsensitive),
-                      let closeTag = html[startRange.upperBound...].range(of: ">"),
-                      let endRange = html[closeTag.upperBound...].range(of: "</title>", options: .caseInsensitive)
-                else { return }
-
-                let title = String(html[closeTag.upperBound..<endRange.lowerBound])
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-
-                guard !title.isEmpty else { return }
-
-                await MainActor.run {
-                    if self.appState.pendingURL == url {
-                        self.appState.pendingURLTitle = title
-                    }
+            await MainActor.run {
+                if self.appState.pendingURL == url {
+                    self.appState.pendingURLTitle = title
                 }
-            } catch {
-                // Silently ignore - title is optional
             }
         }
     }

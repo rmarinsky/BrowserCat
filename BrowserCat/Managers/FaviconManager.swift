@@ -16,7 +16,8 @@ actor FaviconManager {
     }
 
     func favicon(for domain: String) async -> NSImage? {
-        let key = domain.lowercased() as NSString
+        let normalizedDomain = domain.lowercased()
+        let key = normalizedDomain as NSString
 
         // 1. Memory cache
         if let cached = memoryCache.object(forKey: key) {
@@ -31,17 +32,35 @@ actor FaviconManager {
         }
 
         // 3. Deduplicate in-flight requests
-        if let existing = inFlight[domain as String] {
+        if let existing = inFlight[normalizedDomain] {
             return await existing.value
         }
 
         let task = Task<NSImage?, Never> {
-            await fetchAndCache(domain: domain as String, key: key, diskURL: diskURL)
+            await self.fetchAndCache(domain: normalizedDomain, key: key, diskURL: diskURL)
         }
-        inFlight[domain as String] = task
+        inFlight[normalizedDomain] = task
         let result = await task.value
-        inFlight[domain as String] = nil
+        inFlight[normalizedDomain] = nil
         return result
+    }
+
+    func favicon(forURLString urlString: String, fallbackDomain: String? = nil) async -> NSImage? {
+        let resolvedDomain: String?
+        if let url = URL(string: urlString) {
+            if url.scheme?.lowercased() == "https" {
+                let metadata = await LinkMetadataManager.shared.metadata(for: url)
+                resolvedDomain = metadata.finalHost
+            } else {
+                resolvedDomain = url.host?.lowercased()
+            }
+        } else {
+            resolvedDomain = nil
+        }
+
+        let domain = (resolvedDomain ?? fallbackDomain)?.lowercased()
+        guard let domain, !domain.isEmpty else { return nil }
+        return await favicon(for: domain)
     }
 
     private func fetchAndCache(domain: String, key: NSString, diskURL: URL) async -> NSImage? {
@@ -58,7 +77,6 @@ actor FaviconManager {
                   let image = NSImage(data: data)
             else { return nil }
 
-            // Save to disk
             if let tiff = image.tiffRepresentation,
                let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
                 try? png.write(to: diskURL, options: .atomic)

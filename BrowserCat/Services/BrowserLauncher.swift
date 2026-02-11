@@ -82,7 +82,7 @@ final class BrowserLauncher {
         case .chromium:
             args.append("--profile-directory=\(profile.directoryName)")
         case .firefox:
-            args.append(contentsOf: ["-P", profile.directoryName])
+            args.append(contentsOf: ["-P", profile.displayName])
         case nil:
             break
         }

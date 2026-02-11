@@ -11,7 +11,7 @@ struct BrowserCatApp: App {
             )
             .environment(appDelegate.appState)
         } label: {
-            Image(systemName: "cat.fill")
+            MenuBarIconView(appState: appDelegate.appState)
         }
         .menuBarExtraStyle(.menu)
 
@@ -25,5 +25,16 @@ struct BrowserCatApp: App {
                 .environment(\.pickerCoordinator, appDelegate.pickerCoordinator)
                 .environment(\.historyManager, appDelegate.historyManager)
         }
+    }
+}
+
+private struct MenuBarIconView: View {
+    let appState: AppState
+
+    var body: some View {
+        Image(systemName: "cat.fill")
+            .symbolRenderingMode(.hierarchical)
+            .symbolEffect(.bounce.byLayer, value: appState.menuBarIconAnimationToken)
+        .accessibilityLabel("BrowserCat")
     }
 }

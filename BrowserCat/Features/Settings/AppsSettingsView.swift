@@ -10,6 +10,19 @@ struct AppsSettingsView: View {
     @State private var showIgnored: Bool = false
     @State private var clearedTarget: HotkeyTarget?
 
+    private enum Layout {
+        static let rowHorizontalPadding: CGFloat = 16
+        static let browserIconSize: CGFloat = 32
+        static let browserRowSpacing: CGFloat = 12
+        static let profileRowSpacing: CGFloat = 8
+
+        // Profile row starts one icon-column deeper than browser row.
+        static let profileIndent: CGFloat = browserIconSize
+        static var profileDividerLeading: CGFloat {
+            rowHorizontalPadding + browserIconSize + profileRowSpacing
+        }
+    }
+
     private var activeBrowsers: [InstalledBrowser] {
         appState.browsers.filter { !$0.isIgnored }
     }
@@ -24,21 +37,22 @@ struct AppsSettingsView: View {
                     if let index = state.browsers.firstIndex(where: { $0.id == browser.id }) {
                         VStack(spacing: 0) {
                             browserRow(browser: browser, index: index)
-                                .padding(.horizontal, 16)
+                                .padding(.horizontal, Layout.rowHorizontalPadding)
                                 .padding(.vertical, 10)
 
                             // Profiles
                             if browser.hasProfiles {
                                 ForEach(Array(browser.profiles.enumerated()), id: \.element.id) { profileIdx, profile in
                                     Divider()
-                                        .padding(.leading, 56)
+                                        .padding(.leading, Layout.profileDividerLeading)
 
                                     profileRow(
                                         profile: profile,
                                         browserIndex: index,
                                         profileIndex: profileIdx
                                     )
-                                    .padding(.horizontal, 16)
+                                    .padding(.leading, Layout.profileIndent)
+                                    .padding(.horizontal, Layout.rowHorizontalPadding)
                                     .padding(.vertical, 4)
                                 }
                             }
@@ -200,15 +214,15 @@ struct AppsSettingsView: View {
 
     @ViewBuilder
     private func browserRow(browser: InstalledBrowser, index: Int) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Layout.browserRowSpacing) {
             if let icon = browser.icon {
                 Image(nsImage: icon)
                     .resizable()
-                    .frame(width: 32, height: 32)
+                    .frame(width: Layout.browserIconSize, height: Layout.browserIconSize)
             } else {
                 Image(systemName: "globe")
                     .font(.system(size: 24))
-                    .frame(width: 32, height: 32)
+                    .frame(width: Layout.browserIconSize, height: Layout.browserIconSize)
             }
 
             VStack(alignment: .leading, spacing: 1) {
@@ -244,10 +258,7 @@ struct AppsSettingsView: View {
 
     @ViewBuilder
     private func profileRow(profile: BrowserProfile, browserIndex: Int, profileIndex: Int) -> some View {
-        HStack(spacing: 8) {
-            Spacer()
-                .frame(width: 32)
-
+        HStack(spacing: Layout.profileRowSpacing) {
             profileAvatar(for: profile)
 
             VStack(alignment: .leading, spacing: 0) {
@@ -311,19 +322,26 @@ struct AppsSettingsView: View {
             set: { if !$0 { hotkeyTarget = nil } }
         )) {
             HotkeyRecorder { result in
-                applyHotkey(result, target: target)
-                hotkeyTarget = nil
+                handleHotkeyRecord(result, target: target)
             }
         }
     }
 
-    private func applyHotkey(_ result: (key: Character, keyCode: UInt16)?, target: HotkeyTarget) {
-        if let result {
-            clearDuplicateHotkey(result.keyCode, excludingTarget: target)
+    private func handleHotkeyRecord(_ result: HotkeyRecorder.Result, target: HotkeyTarget) {
+        switch result {
+        case let .set(key, keyCode):
+            applyHotkey(key: key, keyCode: keyCode, target: target)
+            hotkeyTarget = nil
+        case .clear:
+            clearHotkey(target: target)
+            hotkeyTarget = nil
+        case .cancel:
+            hotkeyTarget = nil
         }
+    }
 
-        let key = result?.key
-        let keyCode = result?.keyCode
+    private func applyHotkey(key: Character, keyCode: UInt16, target: HotkeyTarget) {
+        clearDuplicateHotkey(keyCode, excludingTarget: target)
 
         switch target {
         case let .app(id):
@@ -346,6 +364,33 @@ struct AppsSettingsView: View {
             {
                 appState.browsers[bIdx].profiles[pIdx].hotkey = key
                 appState.browsers[bIdx].profiles[pIdx].hotkeyKeyCode = keyCode
+            }
+            browserManager?.save(appState.browsers)
+        }
+    }
+
+    private func clearHotkey(target: HotkeyTarget) {
+        switch target {
+        case let .app(id):
+            if let aIdx = appState.apps.firstIndex(where: { $0.id == id }) {
+                appState.apps[aIdx].hotkey = nil
+                appState.apps[aIdx].hotkeyKeyCode = nil
+            }
+            appManager?.save(appState.apps)
+
+        case let .browser(id):
+            if let bIdx = appState.browsers.firstIndex(where: { $0.id == id }) {
+                appState.browsers[bIdx].hotkey = nil
+                appState.browsers[bIdx].hotkeyKeyCode = nil
+            }
+            browserManager?.save(appState.browsers)
+
+        case let .profile(browserId, directoryName):
+            if let bIdx = appState.browsers.firstIndex(where: { $0.id == browserId }),
+               let pIdx = appState.browsers[bIdx].profiles.firstIndex(where: { $0.directoryName == directoryName })
+            {
+                appState.browsers[bIdx].profiles[pIdx].hotkey = nil
+                appState.browsers[bIdx].profiles[pIdx].hotkeyKeyCode = nil
             }
             browserManager?.save(appState.browsers)
         }

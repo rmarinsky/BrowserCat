@@ -13,6 +13,7 @@ final class AppState {
     var isPickerVisible: Bool = false
     var isDefaultBrowser: Bool = false
     var focusedBrowserIndex: Int = 0
+    var menuBarIconAnimationToken: Int = 0
 
     var urlRules: [URLRule] = []
     var history: [HistoryEntry] = []

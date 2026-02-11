@@ -1,10 +1,23 @@
 import SwiftUI
 
 struct FaviconView: View {
+    let urlString: String?
     let domain: String
     var size: CGFloat = 16
 
     @State private var image: NSImage?
+
+    init(domain: String, size: CGFloat = 16) {
+        self.urlString = nil
+        self.domain = domain
+        self.size = size
+    }
+
+    init(urlString: String, fallbackDomain: String? = nil, size: CGFloat = 16) {
+        self.urlString = urlString
+        self.domain = fallbackDomain ?? URL(string: urlString)?.host ?? urlString
+        self.size = size
+    }
 
     var body: some View {
         Group {
@@ -19,8 +32,19 @@ struct FaviconView: View {
             }
         }
         .frame(width: size, height: size)
-        .task(id: domain) {
-            image = await FaviconManager.shared.favicon(for: domain)
+        .task(id: cacheKey) {
+            if let urlString {
+                image = await FaviconManager.shared.favicon(forURLString: urlString, fallbackDomain: domain)
+            } else {
+                image = await FaviconManager.shared.favicon(for: domain)
+            }
         }
+    }
+
+    private var cacheKey: String {
+        if let urlString {
+            return "url:\(urlString)"
+        }
+        return "domain:\(domain)"
     }
 }

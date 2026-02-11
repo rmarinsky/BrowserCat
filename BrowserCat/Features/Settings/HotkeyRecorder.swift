@@ -1,7 +1,13 @@
 import SwiftUI
 
 struct HotkeyRecorder: View {
-    var onRecord: ((key: Character, keyCode: UInt16)?) -> Void
+    enum Result {
+        case set(key: Character, keyCode: UInt16)
+        case clear
+        case cancel
+    }
+
+    var onRecord: (Result) -> Void
 
     @State private var displayText = "Press a key..."
     @State private var eventMonitor: Any?
@@ -15,12 +21,12 @@ struct HotkeyRecorder: View {
 
             HStack {
                 Button("Clear") {
-                    onRecord(nil)
+                    onRecord(.clear)
                 }
                 .buttonStyle(.bordered)
 
                 Button("Cancel") {
-                    onRecord(nil)
+                    onRecord(.cancel)
                 }
                 .buttonStyle(.bordered)
             }
@@ -30,7 +36,7 @@ struct HotkeyRecorder: View {
             eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 // Delete key clears the hotkey
                 if event.keyCode == 51 {
-                    onRecord(nil)
+                    onRecord(.clear)
                     return nil
                 }
 
@@ -38,7 +44,7 @@ struct HotkeyRecorder: View {
                    let char = chars.first,
                    char.isLetter || char.isNumber
                 {
-                    onRecord((key: char, keyCode: event.keyCode))
+                    onRecord(.set(key: char, keyCode: event.keyCode))
                     return nil
                 }
                 return event

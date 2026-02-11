@@ -21,6 +21,16 @@ final class PickerWindowController: NSObject {
     }
 
     func show() {
+        if let panel {
+            positionNearCursor(panel)
+            NSApp.setActivationPolicy(.accessory)
+            NSApp.activate(ignoringOtherApps: true)
+            panel.makeKeyAndOrderFront(nil)
+            panel.makeFirstResponder(panel.contentView)
+            Log.picker.debug("Picker already visible")
+            return
+        }
+
         let panel = makePanel()
         self.panel = panel
 

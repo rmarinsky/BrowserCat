@@ -55,7 +55,7 @@ struct HistorySettingsView: View {
 
     private func historyRow(_ entry: HistoryEntry) -> some View {
         HStack(spacing: 10) {
-            FaviconView(domain: entry.domain, size: 20)
+            FaviconView(urlString: entry.url, fallbackDomain: entry.domain, size: 20)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.domain)
