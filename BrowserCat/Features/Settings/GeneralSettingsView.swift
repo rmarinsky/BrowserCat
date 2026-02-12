@@ -29,6 +29,16 @@ struct GeneralSettingsView: View {
                 LaunchAtLogin.Toggle("Launch at login")
             }
 
+            Section("Picker") {
+                Toggle("Compact view", isOn: Binding(
+                    get: { appState.compactPickerView },
+                    set: { newValue in
+                        appState.compactPickerView = newValue
+                        SettingsStorage.shared.compactPickerView = newValue
+                    }
+                ))
+            }
+
             Section("Menu Bar") {
                 Picker("Recent links", selection: Binding(
                     get: { appState.recentLinksCount },

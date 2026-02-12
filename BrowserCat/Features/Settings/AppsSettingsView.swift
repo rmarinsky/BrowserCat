@@ -115,7 +115,7 @@ struct AppsSettingsView: View {
                         }
                         .padding(.horizontal, 16)
                     } label: {
-                        Text("Ignored (\(state.ignoredBrowsers.count))")
+                        Text("\(String(localized: "Ignored")) (\(state.ignoredBrowsers.count))")
                             .font(.headline)
                             .foregroundStyle(.secondary)
                     }
@@ -299,7 +299,7 @@ struct AppsSettingsView: View {
         Button {
             hotkeyTarget = target
         } label: {
-            Text(hotkey != nil ? String(hotkey!).uppercased() : "SET KEY")
+            Text(hotkey != nil ? String(hotkey!).uppercased() : String(localized: "SET KEY"))
                 .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundStyle(hotkey != nil ? .primary : .tertiary)
                 .padding(.horizontal, 10)
@@ -316,7 +316,7 @@ struct AppsSettingsView: View {
                 )
         }
         .buttonStyle(.plain)
-        .help(isCleared ? "Key was already in use and has been reassigned" : "")
+        .help(isCleared ? String(localized: "Key was already in use and has been reassigned") : "")
         .popover(isPresented: Binding(
             get: { hotkeyTarget == target },
             set: { if !$0 { hotkeyTarget = nil } }

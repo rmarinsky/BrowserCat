@@ -1,0 +1,84 @@
+"General" = "Загальні";
+"Apps" = "Застосунки";
+"Rules" = "Правила";
+"History" = "Історія";
+"About" = "Про програму";
+
+"Default Browser" = "Типовий браузер";
+"BrowserCat is the default browser" = "BrowserCat — типовий браузер";
+"BrowserCat is not the default browser" = "BrowserCat не є типовим браузером";
+"Set as Default" = "Зробити типовим";
+"Startup" = "Запуск";
+"Launch at login" = "Запускати при вході";
+"Picker" = "Пікер";
+"Compact view" = "Компактний вигляд";
+"Menu Bar" = "Рядок меню";
+"Recent links" = "Останні посилання";
+"Developer" = "Розробник";
+"Made by" = "Створив";
+
+"Ignore" = "Ігнорувати";
+"Restore" = "Повернути";
+"Ignored" = "Ігноровані";
+"Native Apps" = "Нативні застосунки";
+"Shown only for links they support" = "Показуються лише для підтримуваних посилань";
+"Rescan Apps" = "Пересканувати застосунки";
+"SET KEY" = "ВСТАНОВИТИ КЛАВІШУ";
+"Key was already in use and has been reassigned" = "Клавішу вже було призначено, її перевизначено";
+
+"No URL Rules" = "Немає URL-правил";
+"Add rules to automatically open URLs\nin a specific browser and profile." = "Додайте правила, щоб автоматично відкривати URL\nу певному браузері та профілі.";
+"(empty)" = "(порожньо)";
+"Unknown" = "Невідомо";
+"Edit" = "Редагувати";
+
+"URL Rule" = "URL-правило";
+"Pattern" = "Шаблон";
+"Match Type" = "Тип збігу";
+"Open In" = "Відкривати в";
+"Browser" = "Браузер";
+"Select..." = "Вибрати...";
+"Profile" = "Профіль";
+"Any Profile" = "Будь-який профіль";
+"App" = "Застосунок";
+"Enabled" = "Увімкнено";
+"Cancel" = "Скасувати";
+"Save" = "Зберегти";
+
+"No History" = "Немає історії";
+"URLs you open will appear here." = "Тут зʼявляться відкриті вами URL.";
+"Clear All" = "Очистити все";
+"Remove Selected" = "Видалити вибрані";
+"Today" = "Сьогодні";
+"Yesterday" = "Вчора";
+"Older" = "Старіші";
+
+"Version" = "Версія";
+"macOS browser picker" = "Пікер браузера для macOS";
+"Made in Ukraine with ❤️" = "Зроблено в Україні з ❤️";
+"Website" = "Сайт";
+"GitHub" = "GitHub";
+"LinkedIn" = "LinkedIn";
+"Support the Developer" = "Підтримати розробника";
+"Project" = "Проєкт";
+"Source Code" = "Вихідний код";
+"License" = "Ліцензія";
+
+"No recent URLs" = "Немає недавніх URL";
+"No links today" = "Сьогодні посилань не було";
+"Open History..." = "Відкрити історію...";
+"Settings..." = "Налаштування...";
+"Quit BrowserCat" = "Вийти з BrowserCat";
+
+"Open with Profile" = "Відкрити з профілем";
+"Open" = "Відкрити";
+"Open Private" = "Відкрити в приватному режимі";
+"Open in" = "Відкрити в";
+"+ key for private mode" = "+ клавіша для приватного режиму";
+"No URL" = "Немає URL";
+"Press a key..." = "Натисніть клавішу...";
+"Clear" = "Очистити";
+
+"Host" = "Хост";
+"Host Contains" = "Хост містить";
+"Regex" = "Регулярний вираз";

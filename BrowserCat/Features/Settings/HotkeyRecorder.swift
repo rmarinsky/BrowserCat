@@ -9,7 +9,7 @@ struct HotkeyRecorder: View {
 
     var onRecord: (Result) -> Void
 
-    @State private var displayText = "Press a key..."
+    @State private var displayText = String(localized: "Press a key...")
     @State private var eventMonitor: Any?
 
     var body: some View {

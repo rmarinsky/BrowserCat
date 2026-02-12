@@ -13,7 +13,7 @@ struct AboutSettingsView: View {
                         Text("BrowserCat")
                             .font(.title2.bold())
 
-                        Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))")
+                        Text("\(String(localized: "Version")) \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
 

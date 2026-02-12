@@ -133,9 +133,9 @@ struct HistorySettingsView: View {
         }
 
         var groups: [DateGroup] = []
-        if !today.isEmpty { groups.append(DateGroup(label: "Today", entries: today)) }
-        if !yesterday.isEmpty { groups.append(DateGroup(label: "Yesterday", entries: yesterday)) }
-        if !older.isEmpty { groups.append(DateGroup(label: "Older", entries: older)) }
+        if !today.isEmpty { groups.append(DateGroup(label: String(localized: "Today"), entries: today)) }
+        if !yesterday.isEmpty { groups.append(DateGroup(label: String(localized: "Yesterday"), entries: yesterday)) }
+        if !older.isEmpty { groups.append(DateGroup(label: String(localized: "Older"), entries: older)) }
         return groups
     }
 }

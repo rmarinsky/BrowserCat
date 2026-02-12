@@ -45,6 +45,11 @@ final class SettingsStorage {
         set { defaults.set(newValue, forKey: "recentLinksCount") }
     }
 
+    var compactPickerView: Bool {
+        get { defaults.bool(forKey: "compactPickerView") }
+        set { defaults.set(newValue, forKey: "compactPickerView") }
+    }
+
     // MARK: - Browser config persistence
 
     func saveBrowserConfigs(_ browsers: [InstalledBrowser]) {

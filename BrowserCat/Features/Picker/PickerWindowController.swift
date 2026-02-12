@@ -109,6 +109,13 @@ final class PickerWindowController: NSObject {
                 }
             }
             return true
+        case 48: // Tab
+            if event.modifierFlags.contains(.shift) {
+                moveFocusWrapping(-1, itemCount: items.count)
+            } else {
+                moveFocusWrapping(1, itemCount: items.count)
+            }
+            return true
         case 123: // Left arrow
             moveFocus(-1, itemCount: items.count)
             return true
@@ -116,10 +123,18 @@ final class PickerWindowController: NSObject {
             moveFocus(1, itemCount: items.count)
             return true
         case 125: // Down arrow
-            moveFocus(columnsCount, itemCount: items.count)
+            if appState.compactPickerView {
+                moveFocus(1, itemCount: items.count)
+            } else {
+                moveFocus(columnsCount, itemCount: items.count)
+            }
             return true
         case 126: // Up arrow
-            moveFocus(-columnsCount, itemCount: items.count)
+            if appState.compactPickerView {
+                moveFocus(-1, itemCount: items.count)
+            } else {
+                moveFocus(-columnsCount, itemCount: items.count)
+            }
             return true
         default:
             let pressedKeyCode = event.keyCode
@@ -178,11 +193,21 @@ final class PickerWindowController: NSObject {
         }
     }
 
+    private func moveFocusWrapping(_ delta: Int, itemCount: Int) {
+        guard itemCount > 0 else { return }
+        let newIndex = (appState.focusedBrowserIndex + delta + itemCount) % itemCount
+        appState.focusedBrowserIndex = newIndex
+    }
+
     // MARK: - Panel
 
     private func makePanel() -> NSPanel {
+        let isCompact = appState.compactPickerView
+        let panelWidth: CGFloat = isCompact ? 600 : 380
+        let panelHeight: CGFloat = isCompact ? 140 : 300
+
         let panel = KeyablePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 300),
+            contentRect: NSRect(x: 0, y: 0, width: panelWidth, height: panelHeight),
             styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless],
             backing: .buffered,
             defer: false
@@ -196,7 +221,7 @@ final class PickerWindowController: NSObject {
         panel.hidesOnDeactivate = false
 
         // Use NSVisualEffectView as the content view for proper vibrancy
-        let visualEffect = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: 380, height: 300))
+        let visualEffect = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: panelHeight))
         visualEffect.material = .hudWindow
         visualEffect.state = .active
         visualEffect.wantsLayer = true

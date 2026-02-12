@@ -49,7 +49,7 @@ struct URLBar: View {
     }
 
     private var hostname: String {
-        guard let url else { return "No URL" }
+        guard let url else { return String(localized: "No URL") }
         return url.host() ?? url.absoluteString
     }
 

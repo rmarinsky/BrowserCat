@@ -11,7 +11,7 @@ struct BrowserCatApp: App {
             )
             .environment(appDelegate.appState)
         } label: {
-            MenuBarIconView(appState: appDelegate.appState)
+            MenuBarIconView()
         }
         .menuBarExtraStyle(.menu)
 
@@ -29,12 +29,9 @@ struct BrowserCatApp: App {
 }
 
 private struct MenuBarIconView: View {
-    let appState: AppState
-
     var body: some View {
         Image(systemName: "cat.fill")
             .symbolRenderingMode(.hierarchical)
-            .symbolEffect(.bounce.byLayer, value: appState.menuBarIconAnimationToken)
         .accessibilityLabel("BrowserCat")
     }
 }

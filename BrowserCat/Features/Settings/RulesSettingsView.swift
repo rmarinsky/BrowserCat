@@ -50,7 +50,7 @@ struct RulesSettingsView: View {
 
                     // Pattern
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(rule.pattern.isEmpty ? "(empty)" : rule.pattern)
+                        Text(rule.pattern.isEmpty ? String(localized: "(empty)") : rule.pattern)
                             .font(.system(size: 12, weight: .medium))
                         Text(rule.matchType.displayName)
                             .font(.system(size: 10))
@@ -63,9 +63,9 @@ struct RulesSettingsView: View {
                         let targetName: String = {
                             switch rule.targetType {
                             case .browser:
-                                return appState.browsers.first(where: { $0.id == rule.browserID })?.displayName ?? "Unknown"
+                                return appState.browsers.first(where: { $0.id == rule.browserID })?.displayName ?? String(localized: "Unknown")
                             case .app:
-                                return appState.apps.first(where: { $0.id == rule.browserID })?.displayName ?? "Unknown"
+                                return appState.apps.first(where: { $0.id == rule.browserID })?.displayName ?? String(localized: "Unknown")
                             }
                         }()
                         HStack(spacing: 4) {

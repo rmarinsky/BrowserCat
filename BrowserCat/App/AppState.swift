@@ -13,11 +13,11 @@ final class AppState {
     var isPickerVisible: Bool = false
     var isDefaultBrowser: Bool = false
     var focusedBrowserIndex: Int = 0
-    var menuBarIconAnimationToken: Int = 0
 
     var urlRules: [URLRule] = []
     var history: [HistoryEntry] = []
     var recentLinksCount: Int = 3
+    var compactPickerView: Bool = false
 
     var visibleBrowsers: [InstalledBrowser] {
         browsers.filter { $0.isVisible && !$0.isIgnored }.sorted { $0.sortOrder < $1.sortOrder }
@@ -34,6 +34,7 @@ final class AppState {
     init() {
         lastOpenedURL = SettingsStorage.shared.lastURL
         recentLinksCount = SettingsStorage.shared.recentLinksCount
+        compactPickerView = SettingsStorage.shared.compactPickerView
         Log.app.debug("AppState initialized")
     }
 }

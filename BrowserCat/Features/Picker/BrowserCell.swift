@@ -4,11 +4,13 @@ struct BrowserCell: View {
     let browser: InstalledBrowser
     let profile: BrowserProfile?
     let isFocused: Bool
+    var compact: Bool = false
 
-    init(browser: InstalledBrowser, isFocused: Bool, profile: BrowserProfile? = nil) {
+    init(browser: InstalledBrowser, isFocused: Bool, profile: BrowserProfile? = nil, compact: Bool = false) {
         self.browser = browser
         self.profile = profile
         self.isFocused = isFocused
+        self.compact = compact
     }
 
     private var displayHotkey: Character? {
@@ -16,6 +18,56 @@ struct BrowserCell: View {
     }
 
     var body: some View {
+        if compact {
+            compactBody
+        } else {
+            normalBody
+        }
+    }
+
+    private var compactBody: some View {
+        ZStack(alignment: .topTrailing) {
+            ZStack(alignment: .bottomLeading) {
+                if let icon = browser.icon {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                } else {
+                    Image(systemName: "globe")
+                        .font(.system(size: 24))
+                        .frame(width: 32, height: 32)
+                }
+
+                // Profile avatar badge
+                if let profile {
+                    profileBadge(for: profile)
+                        .offset(x: -3, y: 3)
+                }
+            }
+
+            // Hotkey badge
+            if let hotkey = displayHotkey {
+                Text(String(hotkey).uppercased())
+                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .frame(width: 14, height: 14)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 3))
+                    .offset(x: 3, y: -3)
+            }
+        }
+        .frame(width: 44, height: 44)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isFocused ? Color.accentColor.opacity(0.15) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(isFocused ? Color.accentColor : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+    }
+
+    private var normalBody: some View {
         VStack(spacing: 4) {
             ZStack(alignment: .topTrailing) {
                 ZStack(alignment: .bottomLeading) {

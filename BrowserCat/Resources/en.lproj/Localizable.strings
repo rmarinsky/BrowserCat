@@ -1,0 +1,84 @@
+"General" = "General";
+"Apps" = "Apps";
+"Rules" = "Rules";
+"History" = "History";
+"About" = "About";
+
+"Default Browser" = "Default Browser";
+"BrowserCat is the default browser" = "BrowserCat is the default browser";
+"BrowserCat is not the default browser" = "BrowserCat is not the default browser";
+"Set as Default" = "Set as Default";
+"Startup" = "Startup";
+"Launch at login" = "Launch at login";
+"Picker" = "Picker";
+"Compact view" = "Compact view";
+"Menu Bar" = "Menu Bar";
+"Recent links" = "Recent links";
+"Developer" = "Developer";
+"Made by" = "Made by";
+
+"Ignore" = "Ignore";
+"Restore" = "Restore";
+"Ignored" = "Ignored";
+"Native Apps" = "Native Apps";
+"Shown only for links they support" = "Shown only for links they support";
+"Rescan Apps" = "Rescan Apps";
+"SET KEY" = "SET KEY";
+"Key was already in use and has been reassigned" = "Key was already in use and has been reassigned";
+
+"No URL Rules" = "No URL Rules";
+"Add rules to automatically open URLs\nin a specific browser and profile." = "Add rules to automatically open URLs\nin a specific browser and profile.";
+"(empty)" = "(empty)";
+"Unknown" = "Unknown";
+"Edit" = "Edit";
+
+"URL Rule" = "URL Rule";
+"Pattern" = "Pattern";
+"Match Type" = "Match Type";
+"Open In" = "Open In";
+"Browser" = "Browser";
+"Select..." = "Select...";
+"Profile" = "Profile";
+"Any Profile" = "Any Profile";
+"App" = "App";
+"Enabled" = "Enabled";
+"Cancel" = "Cancel";
+"Save" = "Save";
+
+"No History" = "No History";
+"URLs you open will appear here." = "URLs you open will appear here.";
+"Clear All" = "Clear All";
+"Remove Selected" = "Remove Selected";
+"Today" = "Today";
+"Yesterday" = "Yesterday";
+"Older" = "Older";
+
+"Version" = "Version";
+"macOS browser picker" = "macOS browser picker";
+"Made in Ukraine with ❤️" = "Made in Ukraine with ❤️";
+"Website" = "Website";
+"GitHub" = "GitHub";
+"LinkedIn" = "LinkedIn";
+"Support the Developer" = "Support the Developer";
+"Project" = "Project";
+"Source Code" = "Source Code";
+"License" = "License";
+
+"No recent URLs" = "No recent URLs";
+"No links today" = "No links today";
+"Open History..." = "Open History...";
+"Settings..." = "Settings...";
+"Quit BrowserCat" = "Quit BrowserCat";
+
+"Open with Profile" = "Open with Profile";
+"Open" = "Open";
+"Open Private" = "Open Private";
+"Open in" = "Open in";
+"+ key for private mode" = "+ key for private mode";
+"No URL" = "No URL";
+"Press a key..." = "Press a key...";
+"Clear" = "Clear";
+
+"Host" = "Host";
+"Host Contains" = "Host Contains";
+"Regex" = "Regex";

@@ -17,9 +17,9 @@ struct URLRule: Identifiable, Codable, Equatable {
 
         var displayName: String {
             switch self {
-            case .host: "Host"
-            case .hostContains: "Host Contains"
-            case .regex: "Regex"
+            case .host: String(localized: "Host")
+            case .hostContains: String(localized: "Host Contains")
+            case .regex: String(localized: "Regex")
             }
         }
     }
@@ -30,8 +30,8 @@ struct URLRule: Identifiable, Codable, Equatable {
 
         var displayName: String {
             switch self {
-            case .browser: "Browser"
-            case .app: "App"
+            case .browser: String(localized: "Browser")
+            case .app: String(localized: "App")
             }
         }
     }

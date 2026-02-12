@@ -45,7 +45,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.info("Received URL: \(urlString)")
         appState.pendingURL = url
         appState.pendingURLTitle = nil
-        appState.menuBarIconAnimationToken += 1
         fetchTitle(for: url)
 
         // Check URL rules before showing picker
