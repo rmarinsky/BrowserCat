@@ -19,7 +19,7 @@ struct GeneralSettingsView: View {
                         Spacer()
 
                         Button("Set as Default") {
-                            defaultBrowserManager?.setAsDefault(state: appState)
+                            defaultBrowserManager.setAsDefault(state: appState)
                         }
                     }
                 }
@@ -53,6 +53,25 @@ struct GeneralSettingsView: View {
                 }
             }
 
+            Section("Language") {
+                Picker("App language", selection: Binding(
+                    get: { appState.appLanguage },
+                    set: { newValue in
+                        appState.appLanguage = newValue
+                        SettingsStorage.shared.appLanguage = newValue
+                        SettingsStorage.shared.applyLanguagePreference()
+                    }
+                )) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.displayNameKey).tag(language)
+                    }
+                }
+
+                Text("Restart BrowserCat to apply language changes.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Developer") {
                 LabeledContent("Made by") {
                     Text("Roman Marinsky \u{1F1FA}\u{1F1E6}")
@@ -62,7 +81,7 @@ struct GeneralSettingsView: View {
         }
         .formStyle(.grouped)
         .onAppear {
-            defaultBrowserManager?.checkIsDefault(state: appState)
+            defaultBrowserManager.checkIsDefault(state: appState)
         }
     }
 }

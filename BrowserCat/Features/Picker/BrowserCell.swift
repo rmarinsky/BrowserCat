@@ -26,16 +26,20 @@ struct BrowserCell: View {
     }
 
     private var compactBody: some View {
-        ZStack(alignment: .topTrailing) {
+        let compactIconSize: CGFloat = 96
+        let compactFallbackIconSize: CGFloat = 72
+        let compactCellSize: CGFloat = 108
+
+        return ZStack(alignment: .topTrailing) {
             ZStack(alignment: .bottomLeading) {
                 if let icon = browser.icon {
                     Image(nsImage: icon)
                         .resizable()
-                        .frame(width: 32, height: 32)
+                        .frame(width: compactIconSize, height: compactIconSize)
                 } else {
                     Image(systemName: "globe")
-                        .font(.system(size: 24))
-                        .frame(width: 32, height: 32)
+                        .font(.system(size: compactFallbackIconSize))
+                        .frame(width: compactIconSize, height: compactIconSize)
                 }
 
                 // Profile avatar badge
@@ -48,14 +52,14 @@ struct BrowserCell: View {
             // Hotkey badge
             if let hotkey = displayHotkey {
                 Text(String(hotkey).uppercased())
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
-                    .frame(width: 14, height: 14)
-                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 3))
-                    .offset(x: 3, y: -3)
+                    .frame(width: 18, height: 18)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 4))
+                    .offset(x: 4, y: -4)
             }
         }
-        .frame(width: 44, height: 44)
+        .frame(width: compactCellSize, height: compactCellSize)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isFocused ? Color.accentColor.opacity(0.15) : Color.clear)

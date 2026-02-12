@@ -21,30 +21,24 @@ final class PickerWindowController: NSObject {
     }
 
     func show() {
-        if let panel {
-            positionNearCursor(panel)
-            NSApp.setActivationPolicy(.accessory)
-            NSApp.activate(ignoringOtherApps: true)
-            panel.makeKeyAndOrderFront(nil)
-            panel.makeFirstResponder(panel.contentView)
-            Log.picker.debug("Picker already visible")
-            return
+        if panel == nil {
+            let newPanel = makePanel()
+            self.panel = newPanel
+
+            let hostingView = NSHostingView(
+                rootView: PickerView()
+                    .environment(appState)
+                    .environment(\.pickerCoordinator, coordinator)
+            )
+            hostingView.autoresizingMask = [.width, .height]
+            hostingView.frame = newPanel.contentView!.bounds
+            // Keep hosting view background transparent so vibrancy shows through
+            hostingView.wantsLayer = true
+            hostingView.layer?.backgroundColor = .clear
+            newPanel.contentView?.addSubview(hostingView)
         }
 
-        let panel = makePanel()
-        self.panel = panel
-
-        let hostingView = NSHostingView(
-            rootView: PickerView()
-                .environment(appState)
-                .environment(\.pickerCoordinator, coordinator)
-        )
-        hostingView.autoresizingMask = [.width, .height]
-        hostingView.frame = panel.contentView!.bounds
-        // Keep hosting view background transparent so vibrancy shows through
-        hostingView.wantsLayer = true
-        hostingView.layer?.backgroundColor = .clear
-        panel.contentView?.addSubview(hostingView)
+        guard let panel else { return }
 
         positionNearCursor(panel)
 
@@ -54,7 +48,26 @@ final class PickerWindowController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
 
         panel.makeKeyAndOrderFront(nil)
-        panel.makeFirstResponder(hostingView)
+        panel.makeFirstResponder(panel.contentView?.subviews.first)
+
+        installMonitors()
+
+        Log.picker.debug("Picker shown")
+    }
+
+    func close() {
+        removeMonitors()
+        panel?.orderOut(nil)
+        NSApp.setActivationPolicy(.accessory)
+        appState.isPickerVisible = false
+        appState.pendingURL = nil
+        Log.picker.debug("Picker dismissed")
+    }
+
+    // MARK: - Monitors
+
+    private func installMonitors() {
+        removeMonitors()
 
         // Dismiss on click outside
         clickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
@@ -67,11 +80,9 @@ final class PickerWindowController: NSObject {
             guard let self else { return event }
             return self.handleKeyEvent(event) ? nil : event
         }
-
-        Log.picker.debug("Picker shown")
     }
 
-    func close() {
+    private func removeMonitors() {
         if let monitor = clickMonitor {
             NSEvent.removeMonitor(monitor)
             clickMonitor = nil
@@ -80,12 +91,6 @@ final class PickerWindowController: NSObject {
             NSEvent.removeMonitor(monitor)
             keyMonitor = nil
         }
-        panel?.orderOut(nil)
-        panel = nil
-        NSApp.setActivationPolicy(.accessory)
-        appState.isPickerVisible = false
-        appState.pendingURL = nil
-        Log.picker.debug("Picker dismissed")
     }
 
     // MARK: - Key Handling

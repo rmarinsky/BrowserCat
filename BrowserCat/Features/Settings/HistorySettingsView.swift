@@ -92,7 +92,7 @@ struct HistorySettingsView: View {
     private var bottomBar: some View {
         HStack {
             Button("Clear All") {
-                historyManager?.clearAll(state: appState)
+                historyManager.clearAll(state: appState)
                 selection.removeAll()
             }
             .disabled(appState.history.isEmpty)
@@ -100,7 +100,7 @@ struct HistorySettingsView: View {
             Spacer()
 
             Button("Remove Selected") {
-                historyManager?.delete(ids: selection, state: appState)
+                historyManager.delete(ids: selection, state: appState)
                 selection.removeAll()
             }
             .disabled(selection.isEmpty)

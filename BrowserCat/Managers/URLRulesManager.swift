@@ -6,11 +6,11 @@ final class URLRulesManager {
     private let urlRuleMatcher = URLRuleMatcher()
 
     func load(into state: AppState) {
-        state.urlRules = SettingsStorage.shared.loadURLRules()
+        state.urlRules = RulesStorage.shared.load()
     }
 
     func save(_ rules: [URLRule]) {
-        SettingsStorage.shared.saveURLRules(rules)
+        RulesStorage.shared.save(rules)
     }
 
     func findMatch(for url: URL, browsers: [InstalledBrowser], apps: [InstalledApp], rules: [URLRule]) -> URLRuleMatch? {

@@ -2,6 +2,8 @@ import Foundation
 import os
 
 final class URLRuleMatcher {
+    private var regexCache: [String: NSRegularExpression] = [:]
+
     func findMatchingRule(for url: URL, rules: [URLRule]) -> URLRule? {
         let enabledRules = rules
             .filter(\.isEnabled)
@@ -41,9 +43,16 @@ final class URLRuleMatcher {
 
     private func matchesRegex(url: URL, pattern: String) -> Bool {
         let urlString = url.absoluteString
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
-            Log.rules.error("Invalid regex pattern: \(pattern)")
-            return false
+        let regex: NSRegularExpression
+        if let cached = regexCache[pattern] {
+            regex = cached
+        } else {
+            guard let compiled = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                Log.rules.error("Invalid regex pattern: \(pattern)")
+                return false
+            }
+            regexCache[pattern] = compiled
+            regex = compiled
         }
         let range = NSRange(urlString.startIndex..., in: urlString)
         return regex.firstMatch(in: urlString, range: range) != nil

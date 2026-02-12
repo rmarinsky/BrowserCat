@@ -3,58 +3,58 @@ import SwiftUI
 // MARK: - Environment Keys
 
 private struct BrowserManagerKey: EnvironmentKey {
-    static let defaultValue: BrowserManager? = nil
+    static var defaultValue: BrowserManager { fatalError("BrowserManager not injected") }
 }
 
 private struct AppManagerKey: EnvironmentKey {
-    static let defaultValue: AppManager? = nil
+    static var defaultValue: AppManager { fatalError("AppManager not injected") }
 }
 
 private struct URLRulesManagerKey: EnvironmentKey {
-    static let defaultValue: URLRulesManager? = nil
+    static var defaultValue: URLRulesManager { fatalError("URLRulesManager not injected") }
 }
 
 private struct DefaultBrowserManagerKey: EnvironmentKey {
-    static let defaultValue: DefaultBrowserManager? = nil
+    static var defaultValue: DefaultBrowserManager { fatalError("DefaultBrowserManager not injected") }
 }
 
 private struct PickerCoordinatorKey: EnvironmentKey {
-    static let defaultValue: PickerCoordinator? = nil
+    static var defaultValue: PickerCoordinator { fatalError("PickerCoordinator not injected") }
 }
 
 private struct HistoryManagerKey: EnvironmentKey {
-    static let defaultValue: HistoryManager? = nil
+    static var defaultValue: HistoryManager { fatalError("HistoryManager not injected") }
 }
 
 // MARK: - Environment Values
 
 extension EnvironmentValues {
-    var browserManager: BrowserManager? {
+    var browserManager: BrowserManager {
         get { self[BrowserManagerKey.self] }
         set { self[BrowserManagerKey.self] = newValue }
     }
 
-    var appManager: AppManager? {
+    var appManager: AppManager {
         get { self[AppManagerKey.self] }
         set { self[AppManagerKey.self] = newValue }
     }
 
-    var urlRulesManager: URLRulesManager? {
+    var urlRulesManager: URLRulesManager {
         get { self[URLRulesManagerKey.self] }
         set { self[URLRulesManagerKey.self] = newValue }
     }
 
-    var defaultBrowserManager: DefaultBrowserManager? {
+    var defaultBrowserManager: DefaultBrowserManager {
         get { self[DefaultBrowserManagerKey.self] }
         set { self[DefaultBrowserManagerKey.self] = newValue }
     }
 
-    var pickerCoordinator: PickerCoordinator? {
+    var pickerCoordinator: PickerCoordinator {
         get { self[PickerCoordinatorKey.self] }
         set { self[PickerCoordinatorKey.self] = newValue }
     }
 
-    var historyManager: HistoryManager? {
+    var historyManager: HistoryManager {
         get { self[HistoryManagerKey.self] }
         set { self[HistoryManagerKey.self] = newValue }
     }

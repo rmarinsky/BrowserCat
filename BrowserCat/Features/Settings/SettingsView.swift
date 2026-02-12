@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(AppState.self) private var appState
+
     var body: some View {
         TabView {
             GeneralSettingsView()
@@ -29,5 +31,6 @@ struct SettingsView: View {
                 }
         }
         .frame(width: 450, height: 550)
+        .environment(\.locale, appState.appLanguage.locale)
     }
 }

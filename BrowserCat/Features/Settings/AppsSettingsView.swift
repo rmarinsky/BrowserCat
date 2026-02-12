@@ -67,7 +67,7 @@ struct AppsSettingsView: View {
                             Button("Ignore") {
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                     state.browsers[index].isIgnored = true
-                                    browserManager?.save(state.browsers)
+                                    browserManager.save(state.browsers)
                                 }
                             }
                         }
@@ -103,7 +103,7 @@ struct AppsSettingsView: View {
                                         if let idx = state.browsers.firstIndex(where: { $0.id == browser.id }) {
                                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                                 state.browsers[idx].isIgnored = false
-                                                browserManager?.save(state.browsers)
+                                                browserManager.save(state.browsers)
                                             }
                                         }
                                     }
@@ -175,7 +175,7 @@ struct AppsSettingsView: View {
                                         get: { app.isVisible },
                                         set: { newValue in
                                             appState.apps[appIndex].isVisible = newValue
-                                            appManager?.save(appState.apps)
+                                            appManager.save(appState.apps)
                                         }
                                     ))
                                     .toggleStyle(.switch)
@@ -198,8 +198,8 @@ struct AppsSettingsView: View {
 
             HStack {
                 Button {
-                    browserManager?.refreshBrowsers(into: appState)
-                    appManager?.refreshApps(into: appState)
+                    browserManager.refreshBrowsers(into: appState)
+                    appManager.refreshApps(into: appState)
                 } label: {
                     Label("Rescan Apps", systemImage: "arrow.clockwise")
                 }
@@ -245,7 +245,7 @@ struct AppsSettingsView: View {
                 get: { browser.isVisible },
                 set: { newValue in
                     appState.browsers[index].isVisible = newValue
-                    browserManager?.save(appState.browsers)
+                    browserManager.save(appState.browsers)
                 }
             ))
             .toggleStyle(.switch)
@@ -281,7 +281,7 @@ struct AppsSettingsView: View {
                 get: { profile.isVisible },
                 set: { newValue in
                     appState.browsers[browserIndex].profiles[profileIndex].isVisible = newValue
-                    browserManager?.save(appState.browsers)
+                    browserManager.save(appState.browsers)
                 }
             ))
             .toggleStyle(.switch)
@@ -349,14 +349,14 @@ struct AppsSettingsView: View {
                 appState.apps[aIdx].hotkey = key
                 appState.apps[aIdx].hotkeyKeyCode = keyCode
             }
-            appManager?.save(appState.apps)
+            appManager.save(appState.apps)
 
         case let .browser(id):
             if let bIdx = appState.browsers.firstIndex(where: { $0.id == id }) {
                 appState.browsers[bIdx].hotkey = key
                 appState.browsers[bIdx].hotkeyKeyCode = keyCode
             }
-            browserManager?.save(appState.browsers)
+            browserManager.save(appState.browsers)
 
         case let .profile(browserId, directoryName):
             if let bIdx = appState.browsers.firstIndex(where: { $0.id == browserId }),
@@ -365,7 +365,7 @@ struct AppsSettingsView: View {
                 appState.browsers[bIdx].profiles[pIdx].hotkey = key
                 appState.browsers[bIdx].profiles[pIdx].hotkeyKeyCode = keyCode
             }
-            browserManager?.save(appState.browsers)
+            browserManager.save(appState.browsers)
         }
     }
 
@@ -376,14 +376,14 @@ struct AppsSettingsView: View {
                 appState.apps[aIdx].hotkey = nil
                 appState.apps[aIdx].hotkeyKeyCode = nil
             }
-            appManager?.save(appState.apps)
+            appManager.save(appState.apps)
 
         case let .browser(id):
             if let bIdx = appState.browsers.firstIndex(where: { $0.id == id }) {
                 appState.browsers[bIdx].hotkey = nil
                 appState.browsers[bIdx].hotkeyKeyCode = nil
             }
-            browserManager?.save(appState.browsers)
+            browserManager.save(appState.browsers)
 
         case let .profile(browserId, directoryName):
             if let bIdx = appState.browsers.firstIndex(where: { $0.id == browserId }),
@@ -392,7 +392,7 @@ struct AppsSettingsView: View {
                 appState.browsers[bIdx].profiles[pIdx].hotkey = nil
                 appState.browsers[bIdx].profiles[pIdx].hotkeyKeyCode = nil
             }
-            browserManager?.save(appState.browsers)
+            browserManager.save(appState.browsers)
         }
     }
 
@@ -407,7 +407,7 @@ struct AppsSettingsView: View {
                     appState.apps[aIdx].hotkeyKeyCode = nil
                     clearedTarget = appTarget
                 }
-                appManager?.save(appState.apps)
+                appManager.save(appState.apps)
                 scheduleClearedDismiss()
                 return
             }
@@ -424,7 +424,7 @@ struct AppsSettingsView: View {
                     appState.browsers[bIdx].hotkeyKeyCode = nil
                     clearedTarget = browserTarget
                 }
-                browserManager?.save(appState.browsers)
+                browserManager.save(appState.browsers)
                 scheduleClearedDismiss()
                 return
             }
@@ -439,7 +439,7 @@ struct AppsSettingsView: View {
                         appState.browsers[bIdx].profiles[pIdx].hotkeyKeyCode = nil
                         clearedTarget = profileTarget
                     }
-                    browserManager?.save(appState.browsers)
+                    browserManager.save(appState.browsers)
                     scheduleClearedDismiss()
                     return
                 }

@@ -1,6 +1,7 @@
 name: BrowserCat
 options:
   bundleIdPrefix: ua.com.rmarinsky
+  developmentLanguage: uk
   deploymentTarget:
     macOS: "14.0"
   xcodeVersion: "15.0"

@@ -132,16 +132,7 @@ struct PickerView: View {
 
     private var compactBody: some View {
         VStack(spacing: 0) {
-            // URL bar
-            URLBar(url: appState.pendingURL, title: appState.pendingURLTitle)
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
-
-            Divider()
-                .padding(.horizontal, 8)
-
-            // Single row of compact cells
+            // Single row of compact cells only
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     ForEach(Array(pickerItems.enumerated()), id: \.element.id) { index, item in
@@ -149,11 +140,8 @@ struct PickerView: View {
                     }
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
             }
-
-            // Hint bar
-            hintBar
         }
         .onAppear {
             appState.focusedBrowserIndex = 0
@@ -173,7 +161,7 @@ struct PickerView: View {
                 if let browser = item.browser {
                     ProfilePopover(browser: browser) { profile in
                         profilePopoverBrowserID = nil
-                        pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
+                        pickerCoordinator.openURL(with: browser, mode: .normal, profile: profile, state: appState)
                     }
                 }
             }
@@ -183,17 +171,17 @@ struct PickerView: View {
             .contextMenu {
                 if let app = item.app {
                     Button {
-                        pickerCoordinator?.openURL(with: app, state: appState)
+                        pickerCoordinator.openURL(with: app, state: appState)
                     } label: {
                         Text("\(String(localized: "Open in")) \(app.displayName)")
                     }
                 } else if let browser = item.browser {
                     Button("Open") {
-                        pickerCoordinator?.openURL(with: browser, mode: .normal, profile: item.profile, state: appState)
+                        pickerCoordinator.openURL(with: browser, mode: .normal, profile: item.profile, state: appState)
                     }
                     if browser.supportsPrivateMode {
                         Button("Open Private") {
-                            pickerCoordinator?.openURL(with: browser, mode: .privateMode, profile: item.profile, state: appState)
+                            pickerCoordinator.openURL(with: browser, mode: .privateMode, profile: item.profile, state: appState)
                         }
                     }
                     if item.profile == nil && browser.hasProfiles {
@@ -201,7 +189,7 @@ struct PickerView: View {
                         Menu("Open with Profile") {
                             ForEach(browser.profiles.filter(\.isVisible)) { profile in
                                 Button {
-                                    pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
+                                    pickerCoordinator.openURL(with: browser, mode: .normal, profile: profile, state: appState)
                                 } label: {
                                     if let email = profile.email {
                                         Text("\(profile.displayName) (\(email))")
@@ -238,13 +226,13 @@ struct PickerView: View {
 
     private func handleItemTap(_ item: PickerItem) {
         if let app = item.app {
-            pickerCoordinator?.openURL(with: app, state: appState)
+            pickerCoordinator.openURL(with: app, state: appState)
         } else if let profile = item.profile, let browser = item.browser {
-            pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
+            pickerCoordinator.openURL(with: browser, mode: .normal, profile: profile, state: appState)
         } else if let browser = item.browser, browser.hasProfiles {
             profilePopoverBrowserID = browser.id
         } else if let browser = item.browser {
-            pickerCoordinator?.openURL(with: browser, mode: .normal, state: appState)
+            pickerCoordinator.openURL(with: browser, mode: .normal, state: appState)
         }
     }
 }
@@ -281,28 +269,32 @@ struct AppCell: View {
     }
 
     private var compactBody: some View {
-        ZStack(alignment: .topTrailing) {
+        let compactIconSize: CGFloat = 96
+        let compactFallbackIconSize: CGFloat = 72
+        let compactCellSize: CGFloat = 108
+
+        return ZStack(alignment: .topTrailing) {
             if let icon = app.icon {
                 Image(nsImage: icon)
                     .resizable()
-                    .frame(width: 32, height: 32)
+                    .frame(width: compactIconSize, height: compactIconSize)
             } else {
                 Image(systemName: "globe")
-                    .font(.system(size: 24))
-                    .frame(width: 32, height: 32)
+                    .font(.system(size: compactFallbackIconSize))
+                    .frame(width: compactIconSize, height: compactIconSize)
             }
 
             // Hotkey badge
             if let hotkey = app.hotkey {
                 Text(String(hotkey).uppercased())
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
-                    .frame(width: 14, height: 14)
-                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 3))
-                    .offset(x: 3, y: -3)
+                    .frame(width: 18, height: 18)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 4))
+                    .offset(x: 4, y: -4)
             }
         }
-        .frame(width: 44, height: 44)
+        .frame(width: compactCellSize, height: compactCellSize)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isFocused ? Color.accentColor.opacity(0.15) : Color.clear)

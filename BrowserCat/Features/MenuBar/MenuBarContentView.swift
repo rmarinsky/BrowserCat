@@ -75,6 +75,7 @@ struct MenuBarContentView: View {
             }
             .keyboardShortcut("Q", modifiers: .command)
         }
+        .environment(\.locale, appState.appLanguage.locale)
     }
 
     private func shortenURL(_ urlString: String) -> String {

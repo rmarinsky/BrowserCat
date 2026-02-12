@@ -70,14 +70,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Title Fetching
 
     private func fetchTitle(for url: URL) {
-        Task.detached(priority: .utility) {
+        Task {
             let metadata = await LinkMetadataManager.shared.metadata(for: url)
             guard let title = metadata.title else { return }
-
-            await MainActor.run {
-                if self.appState.pendingURL == url {
-                    self.appState.pendingURLTitle = title
-                }
+            if self.appState.pendingURL == url {
+                self.appState.pendingURLTitle = title
             }
         }
     }

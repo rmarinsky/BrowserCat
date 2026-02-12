@@ -18,6 +18,7 @@ final class AppState {
     var history: [HistoryEntry] = []
     var recentLinksCount: Int = 3
     var compactPickerView: Bool = false
+    var appLanguage: AppLanguage = .default
 
     var visibleBrowsers: [InstalledBrowser] {
         browsers.filter { $0.isVisible && !$0.isIgnored }.sorted { $0.sortOrder < $1.sortOrder }
@@ -32,9 +33,11 @@ final class AppState {
     }
 
     init() {
+        SettingsStorage.shared.applyLanguagePreference()
         lastOpenedURL = SettingsStorage.shared.lastURL
         recentLinksCount = SettingsStorage.shared.recentLinksCount
         compactPickerView = SettingsStorage.shared.compactPickerView
+        appLanguage = SettingsStorage.shared.appLanguage
         Log.app.debug("AppState initialized")
     }
 }

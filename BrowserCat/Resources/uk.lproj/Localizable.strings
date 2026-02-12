@@ -14,6 +14,11 @@
 "Compact view" = "Компактний вигляд";
 "Menu Bar" = "Рядок меню";
 "Recent links" = "Останні посилання";
+"Language" = "Мова";
+"App language" = "Мова застосунку";
+"Restart BrowserCat to apply language changes." = "Перезапустіть BrowserCat, щоб застосувати зміну мови.";
+"Ukrainian" = "Українська";
+"English" = "Англійська";
 "Developer" = "Розробник";
 "Made by" = "Створив";
 

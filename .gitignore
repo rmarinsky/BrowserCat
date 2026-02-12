@@ -45,3 +45,10 @@ Pods/
 .env
 .env.*
 secrets.json
+
+# Release artifacts
+release/
+*.dmg
+*.sha256
+*-notary.zip
+*.p12
