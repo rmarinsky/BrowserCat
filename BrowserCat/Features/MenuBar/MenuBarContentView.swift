@@ -31,7 +31,10 @@ struct MenuBarContentView: View {
                     Button {
                         onReopenURL(entry.url)
                     } label: {
-                        Label(shortenURL(entry.url), systemImage: iconForURL(entry.url))
+                        Label(
+                            "\(timeText(entry.openedAt)) · \(shortPreview(entry))",
+                            systemImage: iconForURL(entry.url)
+                        )
                     }
                 }
             }
@@ -47,7 +50,7 @@ struct MenuBarContentView: View {
                             onReopenURL(entry.url)
                         } label: {
                             Label(
-                                "\(shortenURL(entry.url)) — \(entry.appName)",
+                                "\(timeText(entry.openedAt)) · \(shortPreview(entry)) — \(entry.appName)",
                                 systemImage: iconForURL(entry.url)
                             )
                         }
@@ -85,6 +88,30 @@ struct MenuBarContentView: View {
             return String(host.prefix(27)) + "..."
         }
         return host
+    }
+
+    private func shortPreview(_ entry: HistoryEntry) -> String {
+        let value = normalized(entry.title)
+            ?? normalized(entry.domain)
+            ?? normalized(shortenURL(entry.url))
+            ?? String(localized: "No URL")
+        return truncate(value, maxLength: 54)
+    }
+
+    private func timeText(_ date: Date) -> String {
+        date.formatted(date: .omitted, time: .shortened)
+    }
+
+    private func normalized(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return trimmed.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+    }
+
+    private func truncate(_ text: String, maxLength: Int) -> String {
+        guard text.count > maxLength else { return text }
+        return String(text.prefix(maxLength - 1)) + "…"
     }
 
     private static let domainIcons: [(pattern: String, icon: String)] = [

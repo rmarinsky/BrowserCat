@@ -19,7 +19,7 @@ struct GeneralSettingsView: View {
                         Spacer()
 
                         Button("Set as Default") {
-                            defaultBrowserManager.setAsDefault(state: appState)
+                            defaultBrowserManager?.setAsDefault(state: appState)
                         }
                     }
                 }
@@ -81,7 +81,7 @@ struct GeneralSettingsView: View {
         }
         .formStyle(.grouped)
         .onAppear {
-            defaultBrowserManager.checkIsDefault(state: appState)
+            defaultBrowserManager?.checkIsDefault(state: appState)
         }
     }
 }

@@ -97,7 +97,7 @@ struct RulesSettingsView: View {
                 for i in state.urlRules.indices {
                     state.urlRules[i].sortOrder = i
                 }
-                urlRulesManager.save(state.urlRules)
+                urlRulesManager?.save(state.urlRules)
             }
         }
         .listStyle(.inset(alternatesRowBackgrounds: true))
@@ -110,7 +110,7 @@ struct RulesSettingsView: View {
                     if let idx = appState.urlRules.firstIndex(where: { $0.id == updatedRule.id }) {
                         appState.urlRules[idx] = updatedRule
                     }
-                    urlRulesManager.save(appState.urlRules)
+                    urlRulesManager?.save(appState.urlRules)
                     editingRule = nil
                 },
                 onCancel: {
@@ -125,7 +125,7 @@ struct RulesSettingsView: View {
                 apps: appState.visibleApps,
                 onSave: { newRule in
                     appState.urlRules.append(newRule)
-                    urlRulesManager.save(appState.urlRules)
+                    urlRulesManager?.save(appState.urlRules)
                     isAddingNew = false
                 },
                 onCancel: {
@@ -151,7 +151,7 @@ struct RulesSettingsView: View {
                     for i in appState.urlRules.indices {
                         appState.urlRules[i].sortOrder = i
                     }
-                    urlRulesManager.save(appState.urlRules)
+                    urlRulesManager?.save(appState.urlRules)
                     selectedRuleID = nil
                 }
             } label: {

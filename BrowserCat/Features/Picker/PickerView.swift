@@ -161,7 +161,7 @@ struct PickerView: View {
                 if let browser = item.browser {
                     ProfilePopover(browser: browser) { profile in
                         profilePopoverBrowserID = nil
-                        pickerCoordinator.openURL(with: browser, mode: .normal, profile: profile, state: appState)
+                        pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
                     }
                 }
             }
@@ -171,17 +171,17 @@ struct PickerView: View {
             .contextMenu {
                 if let app = item.app {
                     Button {
-                        pickerCoordinator.openURL(with: app, state: appState)
+                        pickerCoordinator?.openURL(with: app, state: appState)
                     } label: {
                         Text("\(String(localized: "Open in")) \(app.displayName)")
                     }
                 } else if let browser = item.browser {
                     Button("Open") {
-                        pickerCoordinator.openURL(with: browser, mode: .normal, profile: item.profile, state: appState)
+                        pickerCoordinator?.openURL(with: browser, mode: .normal, profile: item.profile, state: appState)
                     }
                     if browser.supportsPrivateMode {
                         Button("Open Private") {
-                            pickerCoordinator.openURL(with: browser, mode: .privateMode, profile: item.profile, state: appState)
+                            pickerCoordinator?.openURL(with: browser, mode: .privateMode, profile: item.profile, state: appState)
                         }
                     }
                     if item.profile == nil && browser.hasProfiles {
@@ -189,7 +189,7 @@ struct PickerView: View {
                         Menu("Open with Profile") {
                             ForEach(browser.profiles.filter(\.isVisible)) { profile in
                                 Button {
-                                    pickerCoordinator.openURL(with: browser, mode: .normal, profile: profile, state: appState)
+                                    pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
                                 } label: {
                                     if let email = profile.email {
                                         Text("\(profile.displayName) (\(email))")
@@ -226,13 +226,13 @@ struct PickerView: View {
 
     private func handleItemTap(_ item: PickerItem) {
         if let app = item.app {
-            pickerCoordinator.openURL(with: app, state: appState)
+            pickerCoordinator?.openURL(with: app, state: appState)
         } else if let profile = item.profile, let browser = item.browser {
-            pickerCoordinator.openURL(with: browser, mode: .normal, profile: profile, state: appState)
+            pickerCoordinator?.openURL(with: browser, mode: .normal, profile: profile, state: appState)
         } else if let browser = item.browser, browser.hasProfiles {
             profilePopoverBrowserID = browser.id
         } else if let browser = item.browser {
-            pickerCoordinator.openURL(with: browser, mode: .normal, state: appState)
+            pickerCoordinator?.openURL(with: browser, mode: .normal, state: appState)
         }
     }
 }
